@@ -24,7 +24,7 @@ sudo sysctl --system
 #JOIN CMD COMES HERE
 #*************************
 #*************************
- sudo chown ubuntu:ubuntu  /var/lib/kubelet/pki/kubelet-client-current.pem
+sudo chown ubuntu:ubuntu  /var/lib/kubelet/pki/kubelet-client-current.pem
 sudo chown ubuntu:ubuntu /etc/kubernetes/kubelet.conf
 
 echo 'export KUBECONFIG=/etc/kubernetes/kubelet.conf' >> /home/ubuntu/.bashrc
