@@ -1,0 +1,44 @@
+- name: Setup Kubernetes Cluster
+  hosts: master
+  become: yes
+  tasks:
+    - name: Copy master node script to master
+      copy:
+        src: master.sh
+        dest: /home/ubuntu/master.sh
+        mode: '0755'
+
+    - name: Run master node script
+      shell: /home/ubuntu/master.sh
+
+    - name: Fetch worker join command
+      shell: cat /home/ubuntu/worker-join-cmd
+      register: join_command
+
+    - name: Store complete join command
+      set_fact:
+        full_join_command: "{{ join_command.stdout | replace('\\\n', '') | replace('\t', ' ') | regex_replace(' +', ' ') | trim }}"
+
+    - name: Debug full join command
+      debug:
+        msg: "{{ full_join_command }}"
+
+
+- name: Setup Kubernetes Worker Nodes
+  hosts: worker
+  become: yes
+  tasks:
+    - name: Copy worker node script to worker
+      copy:
+        src: worker.sh
+        dest: /home/ubuntu/worker.sh
+        mode: '0755'
+
+    - name: Inject join command into worker script
+      replace:
+        path: /home/ubuntu/worker.sh
+        regexp: '#JOIN CMD COMES HERE'
+        replace: "{{ full_join_command }}"
+
+    - name: Run worker node script
+      shell: /home/ubuntu/worker.sh
