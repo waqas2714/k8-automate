@@ -22,8 +22,6 @@ net.ipv4.ip_forward                 = 1
 EOF
 sudo sysctl --system
 #JOIN CMD COMES HERE
-#*************************
-#*************************
 sudo chown ubuntu:ubuntu  /var/lib/kubelet/pki/kubelet-client-current.pem
 sudo chown ubuntu:ubuntu /etc/kubernetes/kubelet.conf
 
