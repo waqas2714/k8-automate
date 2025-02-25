@@ -23,13 +23,13 @@ EOF
 sudo sysctl --system
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=all | tee kubeadm-init-output.txt
 grep -A 2 'kubeadm join' kubeadm-init-output.txt > worker-join-cmd
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown ubuntu:ubuntu $HOME/.kube/config
-sudo chmod 644 $HOME/.kube/config
-echo 'export KUBECONFIG=/.kube/config' >> /home/ubuntu/.bashrc
+mkdir -p /home/ubuntu/.kube
+sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
+sudo chmod 644 /home/ubuntu/.kube/config
+echo 'export KUBECONFIG=/home/ubuntu/.kube/config' >> /home/ubuntu/.bashrc
 curl -LO https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
-kubectl apply -f kube-flannel.yml
+kubectl apply -f /home/ubuntu/kube-flannel.yml
 sudo cp /worker-join-cmd /home/ubuntu/
 kubectl create clusterrolebinding node-admin-binding \
   --clusterrole=cluster-admin \
