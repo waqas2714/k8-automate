@@ -1,0 +1,26 @@
+
+---
+#An example to share variables on different hosts across plays
+- hosts: master
+  tasks:
+    - name: Set a variable globally
+      command: echo "Hello World!"
+      register: shared_var
+
+
+    - name: "Add shared var to dummy host"
+      add_host:
+        name:   "dummy-host"
+        shared:   "{{ shared_var.stdout }}"
+
+    - name:
+      debug:
+        msg: "Var in dummy host on master is {{ hostvars['dummy-host']['shared'] }}"
+
+
+- hosts: worker
+  tasks:
+    - name:
+      debug:
+        msg: "Var in dummy host on worker is {{ hostvars['dummy-host']['shared'] }}"
+
