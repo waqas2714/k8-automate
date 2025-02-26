@@ -1,6 +1,5 @@
 - name: Setup Kubernetes Cluster
   hosts: master
-  become: yes
   tasks:
     - name: Copy master node script to master
       copy:
@@ -19,14 +18,15 @@
       set_fact:
         full_join_command: "{{ join_command.stdout | replace('\\\n', '') | replace('\t', ' ') | regex_replace(' +', ' ') | trim }}"
 
-    - name: Debug full join command
-      debug:
-        msg: "{{ full_join_command }}"
+    - name: "Add shared var to dummy host"
+      add_host:
+        name:   "dummy-host"
+        shared:   "{{ full_join_command }}"
+
 
 
 - name: Setup Kubernetes Worker Nodes
   hosts: worker
-  become: yes
   tasks:
     - name: Copy worker node script to worker
       copy:
@@ -38,7 +38,7 @@
       replace:
         path: /home/ubuntu/worker.sh
         regexp: '#JOIN CMD COMES HERE'
-        replace: "{{ full_join_command }}"
+        replace: "sudo {{ hostvars['dummy-host']['shared'] }}"
 
     - name: Run worker node script
       shell: /home/ubuntu/worker.sh
