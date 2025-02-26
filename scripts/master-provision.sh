@@ -28,9 +28,5 @@ sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
 sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
 sudo chmod 644 /home/ubuntu/.kube/config
 echo 'export KUBECONFIG=/home/ubuntu/.kube/config' >> /home/ubuntu/.bashrc
-curl -LO https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
-kubectl apply -f /home/ubuntu/kube-flannel.yml
-sudo cp /worker-join-cmd /home/ubuntu/
-kubectl create clusterrolebinding node-admin-binding \
-  --clusterrole=cluster-admin \
-  --group=system:nodes
+export KUBECONFIG=/home/ubuntu/.kube/config
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
