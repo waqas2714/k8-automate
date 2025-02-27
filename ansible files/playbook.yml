@@ -34,11 +34,18 @@
         dest: /home/ubuntu/worker.sh
         mode: '0755'
 
+    # For removing the error on --check
+    - name: Check if worker.sh exists
+      stat:
+        path: /home/ubuntu/worker.sh
+      register: worker_script
+
     - name: Inject join command into worker script
       replace:
         path: /home/ubuntu/worker.sh
         regexp: '#JOIN CMD COMES HERE'
         replace: "sudo {{ hostvars['dummy-host']['shared'] }}"
+      when: worker_script.stat.exists
 
     - name: Run worker node script
       shell: /home/ubuntu/worker.sh
