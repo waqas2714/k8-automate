@@ -1,5 +1,6 @@
 name: GitHub Actions Demo
 run-name: K8s-Deploy
+
 on:
   workflow_dispatch:
     inputs:
@@ -7,12 +8,34 @@ on:
         description: 'A greeting'
         required: false
         default: 'Nope :('
+
       awsAccessKey:
         description: 'AWS Access Key'
         required: true
+
       awsSecretAccessKey:
         description: 'AWS Secret Access Key'
         required: true
+
+      aws_region:
+        description: 'AWS region to deploy resources'
+        required: false
+        default: 'us-east-1'
+
+      ec2_count:
+        description: 'Number of worker EC2 instances to create'
+        required: false
+        default: '3'
+
+      ami_id:
+        description: 'AMI ID for the EC2 instances'
+        required: false
+        default: 'ami-04b4f1a9cf54c11d0'
+
+      instance_type:
+        description: 'Instance type for the EC2 instances'
+        required: false
+        default: 't3.micro'
 
 jobs:
   Explore-GitHub-Actions:
@@ -46,7 +69,11 @@ jobs:
           echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
           cd terraform-files
           terraform init
-          terraform apply -auto-approve
+          terraform apply -auto-approve \
+            -var="aws_region=${{ github.event.inputs.aws_region }}" \
+            -var="ec2_count=${{ github.event.inputs.ec2_count }}" \
+            -var="ami_id=${{ github.event.inputs.ami_id }}" \
+            -var="instance_type=${{ github.event.inputs.instance_type }}"
 
       # Greetings Step
       - name: Greetings!
