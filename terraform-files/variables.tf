@@ -26,3 +26,8 @@ variable "ssh_public_key" {
   description = "Public SSH Key to be used for EC2 instances"
   type        = string
 }
+
+variable "s3_object_source" {
+  description = "S3 Object file path to upload the SSH key"
+  type        = string
+}

@@ -76,7 +76,8 @@ jobs:
             -var="ec2_count=${{ github.event.inputs.ec2_count }}" \
             -var="ami_id=${{ github.event.inputs.ami_id }}" \
             -var="instance_type=${{ github.event.inputs.instance_type }}" \
-            -var="ssh_public_key=$(cat ../ssh-key_pub.pem)"
+            -var="ssh_public_key=$(cat ../ssh-key_pub.pem)" \
+            -var="s3_object_source=../ssh-key.pem"
 
       # Greetings Step
       - name: Greetings!

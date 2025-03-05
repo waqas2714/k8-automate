@@ -145,7 +145,7 @@ resource "aws_s3_bucket" "ssh_key_bucket" {
 resource "aws_s3_object" "object" {
   bucket = "k8s-infra-ssh-key"
   key    = "ssh-key.pem"
-  source = "../ssh-key.pem"
+  source = var.s3_object_source
 
 }
 
