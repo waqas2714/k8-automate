@@ -46,11 +46,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Generate RSA SSH Key
+      # Generate RSA SSH Key and extract the public key
       - name: Generate RSA SSH Key
         run: |
           ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
           ssh-keygen -f ssh-key.pem -e -m PEM > ssh-key_pub.pem
+          cat ssh-key_pub.pem
+        id: ssh
 
       # Make the install script executable
       - name: Make Install Script Executable
@@ -73,7 +75,8 @@ jobs:
             -var="aws_region=${{ github.event.inputs.aws_region }}" \
             -var="ec2_count=${{ github.event.inputs.ec2_count }}" \
             -var="ami_id=${{ github.event.inputs.ami_id }}" \
-            -var="instance_type=${{ github.event.inputs.instance_type }}"
+            -var="instance_type=${{ github.event.inputs.instance_type }}" \
+            -var="ssh_public_key=$(cat ../ssh-key_pub.pem)"
 
       # Greetings Step
       - name: Greetings!

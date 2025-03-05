@@ -21,3 +21,8 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "ssh_public_key" {
+  description = "Public SSH Key to be used for EC2 instances"
+  type        = string
+}

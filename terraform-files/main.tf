@@ -77,19 +77,31 @@ resource "aws_security_group" "sg_master" {
   }
 }
 
-# Create the Master instance
+# Create the Master instance with SSH access
 resource "aws_instance" "ec2_instance_master" {
   ami           = var.ami_id
   instance_type = var.instance_type
 
   vpc_security_group_ids = [aws_security_group.sg_master.id]
 
+  key_name = "master-key"
+
+
+  user_data = <<-EOF
+              #!/bin/bash
+              mkdir -p /home/ubuntu/.ssh
+              echo "${var.ssh_public_key}" >> /home/ubuntu/.ssh/authorized_keys
+              sudo chmod 700 /home/ubuntu/.ssh
+              sudo chmod 600 /home/ubuntu/.ssh/authorized_keys
+              sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh
+            EOF
+
   tags = {
     Name = "Master"
   }
 }
 
-# Create the Worker instances
+# Create the Worker instances with SSH access
 resource "aws_instance" "ec2_instance_worker" {
   count         = var.ec2_count
   ami           = var.ami_id
@@ -97,10 +109,22 @@ resource "aws_instance" "ec2_instance_worker" {
 
   vpc_security_group_ids = [aws_security_group.sg_worker.id]
 
+
+
+  user_data = <<-EOF
+              #!/bin/bash
+              mkdir -p /home/ubuntu/.ssh
+              echo "${var.ssh_public_key}" >> /home/ubuntu/.ssh/authorized_keys
+              sudo chmod 700 /home/ubuntu/.ssh
+              sudo chmod 600 /home/ubuntu/.ssh/authorized_keys
+              sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh
+            EOF
+
   tags = {
     Name = "Worker-${count.index + 1}"
   }
 }
+
 
 # Output the public IPs of both Master and Worker instances
 output "public_ips" {
