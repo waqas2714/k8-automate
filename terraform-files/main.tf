@@ -143,10 +143,11 @@ resource "aws_s3_bucket" "ssh_key_bucket" {
 
 # Upload the SSH key to the S3 bucket
 resource "aws_s3_object" "object" {
-  bucket = "k8s-infra-ssh-key"
+  bucket = aws_s3_bucket.ssh_key_bucket.bucket  # Reference the bucket resource directly
   key    = "ssh-key.pem"
   source = var.s3_object_source
 
+  depends_on = [aws_s3_bucket.ssh_key_bucket]   # Ensure the bucket exists before uploading
 }
 
 # Output the public IPs of both Master and Worker instances
