@@ -1,0 +1,28 @@
+name: GitHub Actions Demo
+run-name: K8s-Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      greeting:
+        description: 'A greeting'
+        required: false
+        default: 'Nope :('
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Generate RSA SSH Key
+        run: |
+          ssh-keygen -t rsa -b 4096 -m PEM -f mykey.pem -N ""
+          ssh-keygen -f mykey.pem -e -m PEM > mykey_pub.pem
+
+      - name: Output SSH Keys
+        run: |
+          echo "Private Key:"
+          cat mykey.pem
+          echo "Public Key:"
+          cat mykey_pub.pem
+
+      - name: Greetings!
+        run: echo "${{ github.event.inputs.greeting }}"
