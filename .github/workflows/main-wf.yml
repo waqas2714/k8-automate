@@ -7,22 +7,46 @@ on:
         description: 'A greeting'
         required: false
         default: 'Nope :('
+      awsAccessKey:
+        description: 'AWS Access Key'
+        required: true
+      awsSecretAccessKey:
+        description: 'AWS Secret Access Key'
+        required: true
+
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
 
+      # Checkout the repository to access scripts and Terraform files
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Generate RSA SSH Key
       - name: Generate RSA SSH Key
         run: |
-          ssh-keygen -t rsa -b 4096 -m PEM -f mykey.pem -N ""
-          ssh-keygen -f mykey.pem -e -m PEM > mykey_pub.pem
+          ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
+          ssh-keygen -f ssh-key.pem -e -m PEM > ssh-key_pub.pem
 
-      - name: Output SSH Keys
+      # Install Terraform using the provided script
+      - name: Install Terraform
+        run: ./scripts/install-terraform.sh
+
+      # Set AWS environment variables
+      - name: Set AWS Credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ github.event.inputs.awsAccessKey }}
+          AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.awsSecretAccessKey }}
+        run: echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
+
+      # Initialize and Apply Terraform configuration
+      - name: Terraform Init and Apply
         run: |
-          echo "Private Key:"
-          cat mykey.pem
-          echo "Public Key:"
-          cat mykey_pub.pem
+          cd terraform-files
+          terraform init
+          terraform apply -auto-approve
 
+      # Greetings Step
       - name: Greetings!
         run: echo "${{ github.event.inputs.greeting }}"
