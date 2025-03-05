@@ -29,6 +29,10 @@ jobs:
           ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
           ssh-keygen -f ssh-key.pem -e -m PEM > ssh-key_pub.pem
 
+      # Make the install script executable
+      - name: Make Install Script Executable
+        run: chmod +x ./scripts/install-terraform.sh
+
       # Install Terraform using the provided script
       - name: Install Terraform
         run: ./scripts/install-terraform.sh
