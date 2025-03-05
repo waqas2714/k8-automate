@@ -46,12 +46,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Generate RSA SSH Key and extract the public key
+      # Generate RSA SSH Key and extract the public key in OpenSSH format
       - name: Generate RSA SSH Key
         run: |
           ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
-          ssh-keygen -f ssh-key.pem -e -m PEM > ssh-key_pub.pem
-          cat ssh-key_pub.pem
+          cat ssh-key.pem.pub > ssh-key_pub.pem  # Use the .pub file directly
         id: ssh
 
       # Make the install script executable
