@@ -132,6 +132,22 @@ resource "aws_instance" "ec2_instance_worker" {
   }
 }
 
+#S3 bucket for SSH
+resource "aws_s3_bucket" "ssh_key_bucket" {
+  bucket = "k8s-infra-ssh-key"
+
+  tags = {
+    Name        = "SSH Key Bucket"
+  }
+}
+
+# Upload the SSH key to the S3 bucket
+resource "aws_s3_object" "object" {
+  bucket = "k8s-infra-ssh-key"
+  key    = "ssh-key.pem"
+  source = "../ssh-key.pem"
+
+}
 
 # Output the public IPs of both Master and Worker instances
 output "public_ips" {
