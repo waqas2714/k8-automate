@@ -77,6 +77,13 @@ resource "aws_security_group" "sg_master" {
   }
 }
 
+# Create an AWS Key Pair using the generated public key
+resource "aws_key_pair" "master_key" {
+  key_name   = "master-key"
+  public_key = var.ssh_public_key
+}
+
+
 # Create the Master instance with SSH access
 resource "aws_instance" "ec2_instance_master" {
   ami           = var.ami_id
@@ -84,7 +91,7 @@ resource "aws_instance" "ec2_instance_master" {
 
   vpc_security_group_ids = [aws_security_group.sg_master.id]
 
-  key_name = "master-key"
+  key_name = aws_key_pair.master_key.key_name
 
 
   user_data = <<-EOF
@@ -109,7 +116,7 @@ resource "aws_instance" "ec2_instance_worker" {
 
   vpc_security_group_ids = [aws_security_group.sg_worker.id]
 
-
+  key_name = aws_key_pair.master_key.key_name
 
   user_data = <<-EOF
               #!/bin/bash
