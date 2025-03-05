@@ -37,16 +37,13 @@ jobs:
       - name: Install Terraform
         run: ./scripts/install-terraform.sh
 
-      # Set AWS environment variables
-      - name: Set AWS Credentials
+      # Initialize and Apply Terraform configuration with AWS credentials set
+      - name: Terraform Init and Apply
         env:
           AWS_ACCESS_KEY_ID: ${{ github.event.inputs.awsAccessKey }}
           AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.awsSecretAccessKey }}
-        run: echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
-
-      # Initialize and Apply Terraform configuration
-      - name: Terraform Init and Apply
         run: |
+          echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
           cd terraform-files
           terraform init
           terraform apply -auto-approve
