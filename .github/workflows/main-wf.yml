@@ -51,6 +51,7 @@ jobs:
         run: |
           ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
           cat ssh-key.pem
+          cat ssh-key.pem > ansible-files/ssh-key.pem
           cat ssh-key.pem.pub > ssh-key_pub.pem
         id: ssh
 
@@ -95,16 +96,16 @@ jobs:
           # Append Ansible vars to the inventory
           echo "[all:vars]" >> ansible-files/inventory.ini
           echo "ansible_user=ubuntu" >> ansible-files/inventory.ini
-          echo "ansible_ssh_private_key_file=../ssh-key.pem" >> ansible-files/inventory.ini
+          echo "ansible_ssh_private_key_file=ssh-key.pem" >> ansible-files/inventory.ini
           
           cat ansible-files/inventory.ini
 
       # Run Ansible Playbook
       - name: Run Ansible Playbook
         run: |
-          cat  ../ssh-key.pem
-          chmod 600 ../ssh-key.pem
           cd ansible-files
+          cat  ssh-key.pem
+          chmod 600 ssh-key.pem
           ansible-playbook -i inventory.ini playbook.yml
 
       # Greetings Step
