@@ -38,7 +38,7 @@ on:
         default: 't3.micro'
 
 jobs:
-  Explore-GitHub-Actions:
+  Provision:
     runs-on: ubuntu-latest
     steps:
 

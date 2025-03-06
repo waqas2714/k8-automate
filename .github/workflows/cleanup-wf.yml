@@ -1,0 +1,47 @@
+name: Terraform Destroy
+run-name: K8s-Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      awsAccessKey:
+        description: 'AWS Access Key'
+        required: true
+
+      awsSecretAccessKey:
+        description: 'AWS Secret Access Key'
+        required: true
+
+      aws_region:
+        description: 'AWS region to destroy resources'
+        required: false
+        default: 'us-east-1'
+
+jobs:
+  Destroy:
+    runs-on: ubuntu-latest
+    steps:
+
+      # Checkout the repository to access scripts and Terraform files
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Make the install script executable
+      - name: Make Install Script Executable
+        run: chmod +x ./scripts/install-terraform.sh
+
+      # Install Terraform using the provided script
+      - name: Install Terraform
+        run: ./scripts/install-terraform.sh
+
+      # Initialize and Destroy Terraform configuration with AWS credentials set
+      - name: Terraform Init and Destroy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ github.event.inputs.awsAccessKey }}
+          AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.awsSecretAccessKey }}
+        run: |
+          echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
+          cd terraform-files
+          terraform init
+          terraform destroy -auto-approve \
+            -var="aws_region=${{ github.event.inputs.aws_region }}"
