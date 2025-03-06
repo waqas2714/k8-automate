@@ -42,33 +42,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # Checkout the repository to access scripts and Terraform files
+      # Checkout the repository to access scripts, Terraform, and Ansible files
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Generate RSA SSH Key and extract the public key in OpenSSH format
+      # Generate RSA SSH Key
       - name: Generate RSA SSH Key
         run: |
           ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
           cat ssh-key.pem
-          cat ssh-key.pem.pub > ssh-key_pub.pem  # Use the .pub file directly
+          cat ssh-key.pem.pub > ssh-key_pub.pem
         id: ssh
 
-      # Make the install script executable
-      - name: Make Install Script Executable
-        run: chmod +x ./scripts/install-terraform.sh
+      # Make scripts executable
+      - name: Make Scripts Executable
+        run: chmod +x ./scripts/*.sh
 
-      # Install Terraform using the provided script
+      # Install Terraform
       - name: Install Terraform
         run: ./scripts/install-terraform.sh
 
-      # Initialize and Apply Terraform configuration with AWS credentials set
+      # Initialize and Apply Terraform
       - name: Terraform Init and Apply
         env:
           AWS_ACCESS_KEY_ID: ${{ github.event.inputs.awsAccessKey }}
           AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.awsSecretAccessKey }}
         run: |
-          echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
           cd terraform-files
           terraform init
           terraform apply -auto-approve \
@@ -78,6 +77,34 @@ jobs:
             -var="instance_type=${{ github.event.inputs.instance_type }}" \
             -var="ssh_public_key=$(cat ../ssh-key_pub.pem)" \
             -var="s3_object_source=../ssh-key.pem"
+        
+          # Capture the output IPs
+          terraform output -json public_ips > ../ansible-files/ips.json
+          cat ../ansible-files/ips.json
+
+      # Prepare Ansible Inventory File
+      - name: Generate Ansible Inventory
+        run: |
+          jq -r '
+            .public_ips[] as $ip |
+            if $ip == .public_ips[0] then "[master]\n" + $ip
+            else "[worker]\n" + $ip
+            end
+          ' ansible-files/ips.json > ansible-files/inventory.ini
+
+          cat ansible-files/inventory.ini
+
+          # Append Ansible vars to the inventory
+          echo "[all:vars]" >> ansible-files/inventory.ini
+          echo "ansible_user=ubuntu" >> ansible-files/inventory.ini
+          echo "ansible_ssh_private_key_file=../ssh-key.pem" >> ansible-files/inventory.ini
+
+      # Run Ansible Playbook
+      - name: Run Ansible Playbook
+        run: |
+          chmod 600 ssh-key.pem
+          cd ansible-files
+          ansible-playbook -i inventory.ini playbook.yml
 
       # Greetings Step
       - name: Greetings!
