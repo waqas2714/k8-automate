@@ -86,9 +86,9 @@ jobs:
       - name: Generate Ansible Inventory
         run: |
           jq -r '
-            .public_ips[] as $ip |
-            if $ip == .public_ips[0] then "[master]\n" + $ip
-            else "[worker]\n" + $ip
+            to_entries[] |
+            if .key == 0 then "[master]\n" + .value
+            else "[worker]\n" + .value
             end
           ' ansible-files/ips.json > ansible-files/inventory.ini
 
