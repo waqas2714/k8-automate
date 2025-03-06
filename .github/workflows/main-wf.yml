@@ -87,22 +87,23 @@ jobs:
         run: |
           jq -r '
             to_entries[] |
-            if .key == 0 then "[master]\n" + .value
-            else "[worker]\n" + .value
+            if .key == 0 then "[master]\n" + .value + "\n\n[worker]"
+            else .value
             end
           ' ansible-files/ips.json > ansible-files/inventory.ini
-
-          cat ansible-files/inventory.ini
 
           # Append Ansible vars to the inventory
           echo "[all:vars]" >> ansible-files/inventory.ini
           echo "ansible_user=ubuntu" >> ansible-files/inventory.ini
           echo "ansible_ssh_private_key_file=../ssh-key.pem" >> ansible-files/inventory.ini
+          
+          cat ansible-files/inventory.ini
 
       # Run Ansible Playbook
       - name: Run Ansible Playbook
         run: |
-          chmod 600 ssh-key.pem
+          cat  ../ssh-key.pem
+          chmod 600 ../ssh-key.pem
           cd ansible-files
           ansible-playbook -i inventory.ini playbook.yml
 
