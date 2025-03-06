@@ -132,6 +132,28 @@ resource "aws_instance" "ec2_instance_worker" {
   }
 }
 
+# Create the Worker instances with SSH access
+resource "aws_instance" "ec2_instance_worker" {
+  ami           = var.ami_id
+  instance_type = var.instance_type
+
+  vpc_security_group_ids = [aws_security_group.sg_worker]
+
+  key_name = aws_key_pair.master_key.key_name
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt update
+              sudo apt install software-properties-common
+              sudo add-apt-repository --yes --update ppa:ansible/ansible
+              sudo apt install ansible
+            EOF
+
+  tags = {
+    Name = "ansible-controller"
+  }
+}
+
 #S3 bucket for SSH
 resource "aws_s3_bucket" "ssh_key_bucket" {
   bucket = "k8s-infra-ssh-key"
