@@ -133,7 +133,7 @@ resource "aws_instance" "ec2_instance_worker" {
 }
 
 # Create the Worker instances with SSH access
-resource "aws_instance" "ec2_instance_worker" {
+resource "aws_instance" "ec2_instance_ansible" {
   ami           = var.ami_id
   instance_type = var.instance_type
 
