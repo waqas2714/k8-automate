@@ -137,7 +137,7 @@ resource "aws_instance" "ec2_instance_ansible" {
   ami           = var.ami_id
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_security_group.sg_worker]
+  vpc_security_group_ids = [aws_security_group.sg_worker.id]
 
   key_name = aws_key_pair.master_key.key_name
 
