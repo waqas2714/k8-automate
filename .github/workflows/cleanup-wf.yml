@@ -37,11 +37,14 @@ jobs:
       # Initialize and Destroy Terraform configuration with AWS credentials set
       - name: Terraform Init and Destroy
         env:
-          AWS_ACCESS_KEY_ID: ${{ github.event.inputs.awsAccessKey }}
-          AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.awsSecretAccessKey }}
+            AWS_ACCESS_KEY_ID: ${{ github.event.inputs.awsAccessKey }}
+            AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.awsSecretAccessKey }}
         run: |
-          echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
-          cd terraform-files
-          terraform init
-          terraform destroy -auto-approve \
-            -var="aws_region=${{ github.event.inputs.aws_region }}"
+            echo "AWS credentials starts with ${AWS_ACCESS_KEY_ID:0:4}"
+            cd terraform-files
+            terraform init
+            terraform destroy -auto-approve \
+            -var="aws_region=${{ github.event.inputs.aws_region }}" \
+            -var="ssh_public_key=''" \
+            -var="s3_object_source=''"
+        
