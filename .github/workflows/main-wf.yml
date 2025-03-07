@@ -50,9 +50,8 @@ jobs:
       - name: Generate RSA SSH Key
         run: |
           ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
-          cat ssh-key.pem
-          cat ssh-key.pem > ansible-files/ssh-key.pem
-          cat ssh-key.pem.pub > ssh-key_pub.pem
+          mkdir ~/.ssh
+          cat ssh-key.pem > ~/.ssh/id_rsa
         id: ssh
 
       # Make scripts executable
@@ -100,13 +99,18 @@ jobs:
           
           cat ansible-files/inventory.ini
 
+
+      # Disable Strict Host Key Checking To Stop It From Prompting During SSH
+      - name: Disable Strict Host Key Checking
+        run: echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
       # Run Ansible Playbook
       - name: Run Ansible Playbook
         run: |
           cd ansible-files
-          cat  ssh-key.pem
-          chmod 600 ssh-key.pem
-          ansible-playbook -i inventory.ini playbook.yml
+          cat  ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+          ansible-playbook -i inventory.ini playbook.yml -vv
 
       # Greetings Step
       - name: Greetings!
