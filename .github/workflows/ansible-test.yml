@@ -50,7 +50,7 @@ jobs:
       - name: Copy RSA SSH Key
         run: |
           mkdir ~/.ssh
-          cat anisble-files/ssh-key.pem > ~/.ssh/id_rsa
+          cat ansible-files/ssh-key.pem > ~/.ssh/id_rsa
         id: ssh
 
       # Run Ansible Playbook
