@@ -53,12 +53,6 @@ jobs:
           cat ansible-files/ssh-key.pem > ~/.ssh/id_rsa
         id: ssh
 
-      # Add SSH Known Hosts
-      - name: Add SSH Known Hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H 18.204.199.225 54.175.136.66 >> ~/.ssh/known_hosts
-
       # Disable Strict Host Key Checking (Alternative to Known Hosts)
       - name: Disable Strict Host Key Checking
         run: echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
