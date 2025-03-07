@@ -10,7 +10,8 @@ function App() {
       inputs: {
         greeting: 'Hello from REST API :)',
         awsAccessKey: import.meta.env.VITE_AWS_ACCESS_KEY,
-        awsSecretAccessKey: import.meta.env.VITE_AWS_SECRET_ACCESS_KEY
+        awsSecretAccessKey: import.meta.env.VITE_AWS_SECRET_ACCESS_KEY,
+        ec2_count: '5'
       },
       headers: {
         'X-GitHub-Api-Version': '2022-11-28'

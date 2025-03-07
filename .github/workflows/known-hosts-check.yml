@@ -1,0 +1,82 @@
+name: GitHub Actions Demo
+run-name: K8s-Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      greeting:
+        description: 'A greeting'
+        required: false
+        default: 'Nope :('
+
+      awsAccessKey:
+        description: 'AWS Access Key'
+        required: true
+
+      awsSecretAccessKey:
+        description: 'AWS Secret Access Key'
+        required: true
+
+      aws_region:
+        description: 'AWS region to deploy resources'
+        required: false
+        default: 'us-east-1'
+
+      ec2_count:
+        description: 'Number of worker EC2 instances to create'
+        required: false
+        default: '3'
+
+      ami_id:
+        description: 'AMI ID for the EC2 instances'
+        required: false
+        default: 'ami-04b4f1a9cf54c11d0'
+
+      instance_type:
+        description: 'Instance type for the EC2 instances'
+        required: false
+        default: 't3.micro'
+
+jobs:
+  Provision:
+    runs-on: ubuntu-latest
+    steps:
+
+      # Checkout the repository to access scripts, Terraform, and Ansible files
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Generate RSA SSH Key
+      - name: Generate RSA SSH Key
+        run: |
+          mkdir ~/.ssh
+          cat ansible-files/ssh-key.pem > ~/.ssh/id_rsa
+        id: ssh
+
+      # Disable Strict Host Key Checking To Stop It From Prompting During SSH
+      - name: Disable Strict Host Key Checking
+        run: echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+        # Add all IP addresses to known_hosts
+      - name: Add IPs to known_hosts
+        run: |
+          cd ansible-files
+          IP_LIST=$(jq -r '.[]' ips.json)
+          echo "Found IPs: $IP_LIST"
+          for ip in $IP_LIST; do
+            echo "Adding $ip to known_hosts"
+            ssh-keyscan -H $ip >> ~/.ssh/known_hosts || true
+          done
+          cat ~/.ssh/known_hosts
+
+      # Run Ansible Playbook
+      - name: Ping ALl Using Ansible Playbook
+        run: |
+          cd ansible-files
+          cat  ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+          ansible all -i inventory.ini -m ping
+
+      # Greetings Step
+      - name: Greetings!
+        run: echo "${{ github.event.inputs.greeting }}"
