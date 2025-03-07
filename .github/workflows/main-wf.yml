@@ -105,6 +105,15 @@ jobs:
       - name: Disable Strict Host Key Checking
         run: echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
+        # Add all IP addresses to known_hosts
+      - name: Add IPs to known_hosts
+        run: |
+          cd ansible-files
+          IP_LIST=$(jq -r '.[]' ips.json)
+          for ip in $IP_LIST; do
+            ssh-keyscan -H $ip >> ~/.ssh/known_hosts
+          done
+
       # Run Ansible Playbook
       - name: Run Ansible Playbook
         run: |
