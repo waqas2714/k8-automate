@@ -1,0 +1,68 @@
+name: GitHub Actions Demo
+run-name: K8s-Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      greeting:
+        description: 'A greeting'
+        required: false
+        default: 'Nope :('
+
+      awsAccessKey:
+        description: 'AWS Access Key'
+        required: true
+
+      awsSecretAccessKey:
+        description: 'AWS Secret Access Key'
+        required: true
+
+      aws_region:
+        description: 'AWS region to deploy resources'
+        required: false
+        default: 'us-east-1'
+
+      ec2_count:
+        description: 'Number of worker EC2 instances to create'
+        required: false
+        default: '3'
+
+      ami_id:
+        description: 'AMI ID for the EC2 instances'
+        required: false
+        default: 'ami-04b4f1a9cf54c11d0'
+
+      instance_type:
+        description: 'Instance type for the EC2 instances'
+        required: false
+        default: 't3.micro'
+
+jobs:
+  Provision:
+    runs-on: ubuntu-latest
+    steps:
+
+      # Checkout the repository to access scripts, Terraform, and Ansible files
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Generate RSA SSH Key
+      - name: Generate RSA SSH Key
+        run: |
+          ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
+          cat ssh-key.pem
+          cat ssh-key.pem > ~/.ssh/id_rsa
+          cat ssh-key.pem.pub > ssh-key_pub.pem
+        id: ssh
+
+      # Run Ansible Playbook
+      - name: Run Ansible Playbook
+        run: |
+          cd ansible-files
+          cat  ssh-key.pem
+          sudo chmod 600 ~/.ssh/id_rsa
+          ansible-playbook -i inventory-manual.ini playbook.yml
+
+      # Greetings Step
+      - name: Greetings!
+        run: echo "${{ github.event.inputs.greeting }}"
