@@ -60,7 +60,7 @@ jobs:
       - name: Run Ansible Playbook
         run: |
           cd ansible-files
-          cat  ssh-key.pem
+          cat  ~/.ssh/id_rsa
           sudo chmod 600 ~/.ssh/id_rsa
           ansible-playbook -i inventory-manual.ini playbook.yml
 
