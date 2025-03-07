@@ -62,14 +62,14 @@ jobs:
       # Disable Strict Host Key Checking (Alternative to Known Hosts)
       - name: Disable Strict Host Key Checking
         run: echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-        
+
       # Run Ansible Playbook
       - name: Run Ansible Playbook
         run: |
           cd ansible-files
           cat  ~/.ssh/id_rsa
           sudo chmod 600 ~/.ssh/id_rsa
-          ansible-playbook -i inventory-manual.ini playbook.yml -v
+          ansible-playbook -i inventory-manual.ini playbook.yml -vv
 
       # Greetings Step
       - name: Greetings!
