@@ -47,13 +47,10 @@ jobs:
         uses: actions/checkout@v3
 
       # Generate RSA SSH Key
-      - name: Generate RSA SSH Key
+      - name: Copy RSA SSH Key
         run: |
-          ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
-          cat ssh-key.pem
           mkdir ~/.ssh
-          cat ssh-key.pem > ~/.ssh/id_rsa
-          cat ssh-key.pem.pub > ssh-key_pub.pem
+          cat anisble-files/ssh-key.pem > ~/.ssh/id_rsa
         id: ssh
 
       # Run Ansible Playbook
