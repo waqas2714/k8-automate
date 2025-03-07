@@ -3,12 +3,12 @@
   tasks:
     - name: Copy master node script to master
       copy:
-        src: master.sh
-        dest: scripts/master.sh
+        src: ../scripts/master.sh
+        dest: ~/master.sh
         mode: '0755'
 
     - name: Run master node script
-      shell: scripts/master.sh
+      shell: ~/master.sh
 
     - name: Fetch worker join command
       shell: cat /home/ubuntu/worker-join-cmd
@@ -30,22 +30,22 @@
   tasks:
     - name: Copy worker node script to worker
       copy:
-        src: worker.sh
-        dest: scripts/worker.sh
+        src: ../scripts/worker.sh
+        dest: ~/worker.sh
         mode: '0755'
 
     # For removing the error on --check
     - name: Check if worker.sh exists
       stat:
-        path: scripts/worker.sh
+        path: ~/worker.sh
       register: worker_script
 
     - name: Inject join command into worker script
       replace:
-        path: scripts/worker.sh
+        path: ~/worker.sh
         regexp: '#JOIN CMD COMES HERE'
         replace: "sudo {{ hostvars['dummy-host']['shared'] }}"
       when: worker_script.stat.exists
 
     - name: Run worker node script
-      shell: scripts/worker.sh
+      shell: ~/worker.sh
