@@ -51,6 +51,7 @@ jobs:
         run: |
           ssh-keygen -t rsa -b 4096 -m PEM -f ssh-key.pem -N ""
           cat ssh-key.pem
+          mkdir ~/.ssh
           cat ssh-key.pem > ~/.ssh/id_rsa
           cat ssh-key.pem.pub > ssh-key_pub.pem
         id: ssh
