@@ -111,8 +111,10 @@ jobs:
           cd ansible-files
           IP_LIST=$(jq -r '.[]' ips.json)
           for ip in $IP_LIST; do
-            ssh-keyscan -H $ip >> ~/.ssh/known_hosts
+            echo "Adding $ip to known_hosts"
+            ssh-keyscan -H $ip >> ~/.ssh/known_hosts || true
           done
+          cat ~/.ssh/known_hosts
 
       # Run Ansible Playbook
       - name: Run Ansible Playbook
