@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: Ansible Test
 run-name: K8s-Deploy
 
 on:
@@ -38,7 +38,7 @@ on:
         default: 't3.micro'
 
 jobs:
-  Provision:
+  test:
     runs-on: ubuntu-latest
     steps:
 
