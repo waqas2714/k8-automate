@@ -62,7 +62,6 @@ jobs:
         run: |
           cd ansible-files
           IP_LIST=$(jq -r '.[]' ips.json)
-          echo "Found IPs: $IP_LIST"
           for ip in $IP_LIST; do
             echo "Adding $ip to known_hosts"
             ssh-keyscan -H $ip >> ~/.ssh/known_hosts || true
