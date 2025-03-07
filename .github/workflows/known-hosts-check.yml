@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: Known Hosts Check
 run-name: K8s-Deploy
 
 on:
@@ -70,12 +70,12 @@ jobs:
           cat ~/.ssh/known_hosts
 
       # Run Ansible Playbook
-      - name: Ping ALl Using Ansible Playbook
+      - name: Ping ALL Using Ansible Playbook
         run: |
           cd ansible-files
           cat  ~/.ssh/id_rsa
           sudo chmod 600 ~/.ssh/id_rsa
-          ansible all -i inventory.ini -m ping
+          ansible worker -i inventory-manual.ini -m ping
 
       # Greetings Step
       - name: Greetings!
