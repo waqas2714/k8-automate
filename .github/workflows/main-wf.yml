@@ -96,7 +96,7 @@ jobs:
           # Append Ansible vars to the inventory
           echo "[all:vars]" >> ansible-files/inventory.ini
           echo "ansible_user=ubuntu" >> ansible-files/inventory.ini
-          echo "ansible_ssh_private_key_file=ssh-key.pem" >> ansible-files/inventory.ini
+          echo "ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ansible-files/inventory.ini
           
           cat ansible-files/inventory.ini
 
@@ -114,7 +114,6 @@ jobs:
             echo "Adding $ip to known_hosts"
             ssh-keyscan -H $ip >> ~/.ssh/known_hosts || true
           done
-          cat ~/.ssh/known_hosts
 
       # Run Ansible Playbook
       - name: Run Ansible Playbook
