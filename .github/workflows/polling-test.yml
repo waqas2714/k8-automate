@@ -1,0 +1,67 @@
+name: Timed Workflow with Sleeps
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1 - Start workflow
+        run: echo "Workflow started"
+
+      - name: Sleep 1 (30 seconds)
+        run: sleep 30
+
+      - name: Step 2 - Display current date
+        run: date
+
+      - name: Sleep 2 (30 seconds)
+        run: sleep 30
+
+      - name: Step 3 - Show working directory
+        run: pwd
+
+      - name: Sleep 3 (30 seconds)
+        run: sleep 30
+
+      - name: Step 4 - List files in directory
+        run: ls -l
+
+      - name: Sleep 4 (30 seconds)
+        run: sleep 30
+
+      - name: Step 5 - Display disk usage
+        run: df -h
+
+      - name: Sleep 5 (30 seconds)
+        run: sleep 30
+
+      - name: Step 6 - Show system memory info
+        run: free -h
+
+      - name: Sleep 6 (30 seconds)
+        run: sleep 30
+
+      - name: Step 7 - Show system uptime
+        run: uptime
+
+      - name: Sleep 7 (30 seconds)
+        run: sleep 30
+
+      - name: Step 8 - Show environment variables
+        run: env
+
+      - name: Sleep 8 (30 seconds)
+        run: sleep 30
+
+      - name: Step 9 - Create a sample file
+        run: echo "Sample file content" > sample.txt
+
+      - name: Sleep 9 (30 seconds)
+        run: sleep 30
+
+      - name: Step 10 - Completion message
+        run: echo "Workflow completed successfully!"
