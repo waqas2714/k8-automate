@@ -1,15 +1,22 @@
-name: Timed Workflow with Sleeps
+name: Timed Workflow with Dynamic Step 1 Name
 
 on:
   workflow_dispatch:
+    inputs:
+      step1_name:
+        description: 'Name for Step 1'
+        required: true
+        default: 'Start workflow'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Step 1 - Start workflow
+      # Step 1 with dynamic name based on input
+      - name: ${{ github.event.inputs.step1_name }}
         run: echo "Workflow started"
 
+      # Step 2 onwards remain the same
       - name: Sleep 1 (30 seconds)
         run: sleep 30
 
