@@ -4,39 +4,55 @@ import { useEffect, useState } from "react";
 function App() {
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
 
-  // State to store the dynamic user ID
+  // State variables
   const [userId, setUserId] = useState("");
-  const [steps, setSteps] = useState([]); // Store found steps
+  const [steps, setSteps] = useState([]); // Stores found steps
   const [message, setMessage] = useState(""); // Message for no jobs found
+  const [loading, setLoading] = useState(false); // Loading state
+  const [polling, setPolling] = useState(null); // Store polling interval ID
 
-  // Function to generate a unique ID
-  const generateUniqueId = () => `user-${Math.random().toString(36).substr(2, 9)}`;
-
-  // On component mount, check if there's a userId in localStorage; if not, create and store it
+  // Generate a unique user ID if not found in localStorage
   useEffect(() => {
     let storedUserId = localStorage.getItem("uniqueUserId");
     if (!storedUserId) {
-      storedUserId = generateUniqueId();
+      storedUserId = `user-${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem("uniqueUserId", storedUserId);
     }
     setUserId(storedUserId);
   }, []);
 
   const workflowDispatch = async () => {
-    await octokit.request(
-      "POST /repos/waqas2714/k8-automate/actions/workflows/polling-test.yml/dispatches",
-      {
-        ref: "workflow-by-dynamic-step",
-        inputs: { step1_name: userId },
-        headers: { "X-GitHub-Api-Version": "2022-11-28" },
-      }
-    );
+    try {
+      const response = await octokit.request(
+        "POST /repos/waqas2714/k8-automate/actions/workflows/polling-test.yml/dispatches",
+        {
+          ref: "workflow-by-dynamic-step",
+          inputs: { step1_name: userId },
+          headers: { "X-GitHub-Api-Version": "2022-11-28" },
+        }
+      );
+
+      console.log("Workflow dispatched:", response);
+
+      // Wait 15 seconds before the first check
+      setTimeout(() => {
+        getWorkflowRun();
+        // Start polling every 30 seconds
+        if (!polling) {
+          const interval = setInterval(getWorkflowRun, 45000);
+          setPolling(interval);
+        }
+      }, 25000);
+    } catch (error) {
+      console.error("Error dispatching workflow:", error);
+    }
   };
 
   const getWorkflowRun = async () => {
     try {
       setSteps([]); // Clear previous steps
       setMessage(""); // Reset message
+      setLoading(true); // Show loader
 
       const response = await octokit.request(
         "GET /repos/waqas2714/k8-automate/actions/workflows/polling-test.yml/runs",
@@ -67,19 +83,23 @@ function App() {
               name: step.name,
               status: step.status,
             }));
-            break; // Stop checking further runs once a match is found
+            break; // Stop searching after the first match
           }
         }
       }
 
       if (foundSteps.length > 0) {
         setSteps(foundSteps);
+        clearInterval(polling); // Stop polling when a match is found
+        setPolling(null);
       } else {
         setMessage("No jobs found.");
       }
     } catch (error) {
       console.error("Error getting workflow run:", error);
       setMessage("Error retrieving workflow runs.");
+    } finally {
+      setLoading(false); // Hide loader
     }
   };
 
@@ -92,7 +112,14 @@ function App() {
         Get Workflow Runs
       </button>
 
-      {steps.length > 0 ? (
+      {loading && (
+        <div className="mt-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      )}
+
+      {!loading && steps.length > 0 && (
         <div className="mt-4 p-4 border border-gray-300 rounded">
           <h2 className="font-bold text-lg">Matched Workflow Steps:</h2>
           <ul className="list-disc ml-6">
@@ -104,9 +131,9 @@ function App() {
             ))}
           </ul>
         </div>
-      ) : (
-        message && <p className="mt-4 text-red-500">{message}</p>
       )}
+
+      {!loading && message && <p className="mt-4 text-red-500">{message}</p>}
     </div>
   );
 }
