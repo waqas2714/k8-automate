@@ -14,9 +14,10 @@ function App() {
     } else if (token) {
       verifyToken(token);
     }
-  }, [token]);
+  }, []);
 
   const exchangeCodeForToken = async (code) => {
+    
     try {
       const response = await fetch("http://localhost:3001/authenticate", {
         method: "POST",
@@ -25,7 +26,6 @@ function App() {
       });
 
       const data = await response.json();
-      console.log(data);
       if (data.access_token) {
         
         setToken(data.access_token);
@@ -40,9 +40,10 @@ function App() {
   const verifyToken = async (token) => {
     try {
       const octokit = new Octokit({ auth: token });
+  
       const response = await octokit.request("GET /user");
 
-      setIsAuthenticated(true);
+      console.log("Full Response:", response); // Log full response
     } catch (error) {
       console.error("Invalid Token:", error);
       setIsAuthenticated(false);
@@ -50,11 +51,14 @@ function App() {
       localStorage.removeItem("github_token");
     }
   };
+  
+  
 
   const redirectToGitHub = () => {
     const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo`;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo,workflow`;
   };
+  
 
   const octokit = new Octokit({ auth: token });
 
