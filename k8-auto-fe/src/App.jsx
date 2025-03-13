@@ -1,7 +1,7 @@
 import { Octokit } from "@octokit/core";
 import { useEffect, useState } from "react";
 
-function Home() {
+function App() {
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
 
   // State variables
@@ -34,16 +34,15 @@ function Home() {
 
       console.log("Workflow dispatched:", response);
 
-      setLoading(true);
       // Wait 15 seconds before the first check
       setTimeout(() => {
         getWorkflowRun();
         // Start polling every 30 seconds
         if (!polling) {
-          const interval = setInterval(getWorkflowRun, 50000);
+          const interval = setInterval(getWorkflowRun, 45000);
           setPolling(interval);
         }
-      }, 30000);
+      }, 25000);
     } catch (error) {
       console.error("Error dispatching workflow:", error);
     }
@@ -80,12 +79,10 @@ function Home() {
           const matchingStep = steps.find((step) => step.name === userId);
 
           if (matchingStep) {
-            foundSteps = steps
-              .filter((_, index ) => index > 1) // Skip the first two steps
-              .map((step) => ({
-                name: step.name,
-                status: step.status,
-              }));
+            foundSteps = steps.map((step) => ({
+              name: step.name,
+              status: step.status,
+            }));
             break; // Stop searching after the first match
           }
         }
@@ -108,16 +105,10 @@ function Home() {
 
   return (
     <div className="p-4">
-      <button
-        onClick={workflowDispatch}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
+      <button onClick={workflowDispatch} className="bg-blue-500 text-white px-4 py-2 rounded">
         DISPATCH!!!
       </button>
-      <button
-        onClick={getWorkflowRun}
-        className="bg-green-500 text-white px-4 py-2 rounded mx-6"
-      >
+      <button onClick={getWorkflowRun} className="bg-green-500 text-white px-4 py-2 rounded mx-6">
         Get Workflow Runs
       </button>
 
@@ -147,4 +138,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default App;
