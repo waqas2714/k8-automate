@@ -94,7 +94,7 @@ function Home() {
         getWorkflowRun();
         // Start polling every 30 seconds
         if (!polling) {
-          const interval = setInterval(getWorkflowRun, 45000);
+          const interval = setInterval(getWorkflowRun, 60000);
           setPolling(interval);
         }
       }, 25000);

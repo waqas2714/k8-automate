@@ -5,12 +5,15 @@ import {
   Route,
 } from "react-router-dom";
 import Home from './Home';
+import AuthDispatch from './AuthDispatch';
+import WorkflowStatus from './WorkflowStatus';
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path='/' element={<Home />} />
+        <Route path='/' element={<AuthDispatch />} />
+        <Route path='/status' element={<WorkflowStatus />} />
       </Routes>
     </Router>
   )
