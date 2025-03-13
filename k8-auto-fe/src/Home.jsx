@@ -26,6 +26,9 @@ function App() {
       });
 
       const data = await response.json();
+
+      console.log("token: " + data.access_token);
+      
       if (data.access_token) {
         
         setToken(data.access_token);
@@ -42,6 +45,8 @@ function App() {
       const octokit = new Octokit({ auth: token });
   
       const response = await octokit.request("GET /user");
+
+      localStorage.setItem('uniqueUserId', response.data.login);
 
       console.log("Full Response:", response); // Log full response
     } catch (error) {
