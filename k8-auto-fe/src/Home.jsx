@@ -55,8 +55,11 @@ function Home() {
       const response = await octokit.request("GET /user");
 
       localStorage.setItem('uniqueUserId', response.data.login);
+      setUserId(response.data.login);
 
       console.log("Full Response:", response); // Log full response
+      setIsAuthenticated(true);
+
     } catch (error) {
       console.error("Invalid Token:", error);
       setIsAuthenticated(false);
