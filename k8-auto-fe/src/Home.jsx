@@ -10,23 +10,75 @@ function Home() {
   const [message, setMessage] = useState(""); // Message for no jobs found
   const [loading, setLoading] = useState(false); // Loading state
   const [polling, setPolling] = useState(null); // Store polling interval ID
+  const [token, setToken] = useState(localStorage.getItem("github_token") || null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Generate a unique user ID if not found in localStorage
   useEffect(() => {
-    let storedUserId = localStorage.getItem("uniqueUserId");
-    if (!storedUserId) {
-      storedUserId = `user-${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem("uniqueUserId", storedUserId);
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    if (code && !token) {
+      exchangeCodeForToken(code);
+    } else if (token) {
+      verifyToken(token);
     }
-    setUserId(storedUserId);
   }, []);
+
+  const exchangeCodeForToken = async (code) => {
+    
+    try {
+      const response = await fetch("http://localhost:3001/authenticate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json();
+
+      console.log("token: " + data.access_token);
+      
+      if (data.access_token) {
+        
+        setToken(data.access_token);
+        localStorage.setItem("github_token", data.access_token);
+        verifyToken(data.access_token);
+      }
+    } catch (error) {
+      console.error("Error exchanging code for token:", error);
+    }
+  };
+
+  const verifyToken = async (token) => {
+    try {
+      const octokit = new Octokit({ auth: token });
+  
+      const response = await octokit.request("GET /user");
+
+      localStorage.setItem('uniqueUserId', response.data.login);
+
+      console.log("Full Response:", response); // Log full response
+    } catch (error) {
+      console.error("Invalid Token:", error);
+      setIsAuthenticated(false);
+      setToken(null);
+      localStorage.removeItem("github_token");
+    }
+  };
+  
+  
+
+  const redirectToGitHub = () => {
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo,workflow`;
+  };
+
 
   const workflowDispatch = async () => {
     try {
       const response = await octokit.request(
         "POST /repos/waqas2714/k8-automate/actions/workflows/polling-test.yml/dispatches",
         {
-          ref: "workflow-by-dynamic-step",
+          ref: "main",
           inputs: { step1_name: userId },
           headers: { "X-GitHub-Api-Version": "2022-11-28" },
         }
@@ -43,6 +95,8 @@ function Home() {
           setPolling(interval);
         }
       }, 25000);
+
+      console.log(response);
     } catch (error) {
       console.error("Error dispatching workflow:", error);
     }
@@ -104,8 +158,12 @@ function Home() {
   };
 
   return (
-    <div className="p-4">
-      <button onClick={workflowDispatch} className="bg-blue-500 text-white px-4 py-2 rounded">
+    <div className="bg-yellow-400 p-4">
+      {!token || !isAuthenticated ? (
+        <button onClick={redirectToGitHub}>Login with GitHub</button>
+      ) : (
+        <div className='p-4'>
+<button onClick={workflowDispatch} className="bg-blue-500 text-white px-4 py-2 rounded">
         DISPATCH!!!
       </button>
       <button onClick={getWorkflowRun} className="bg-green-500 text-white px-4 py-2 rounded mx-6">
@@ -134,6 +192,8 @@ function Home() {
       )}
 
       {!loading && message && <p className="mt-4 text-red-500">{message}</p>}
+        </div>
+      )}
     </div>
   );
 }
