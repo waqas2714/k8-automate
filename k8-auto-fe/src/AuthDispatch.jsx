@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react";
 import { Octokit } from "@octokit/core";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom"; // Import Link for navigation
 
 function AuthDispatch() {
   const navigate = useNavigate();
   const [token, setToken] = useState(localStorage.getItem("github_token") || null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState("");
+
+  // State for workflow inputs
+  const [awsAccessKey, setAwsAccessKey] = useState("");
+  const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
+  const [ec2Count, setEc2Count] = useState("3");
+  const [instanceType, setInstanceType] = useState("t2.micro");
+
+  const [workflowDispatched, setWorkflowDispatched] = useState(localStorage.getItem("workflow_dispatched") === "true");
+  const [failedStep, setFailedStep] = useState(localStorage.getItem("failed_step") || null);
 
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
 
@@ -62,31 +73,76 @@ function AuthDispatch() {
   };
 
   const workflowDispatch = async () => {
+    if (!awsAccessKey.trim()) {
+      toast.error("AWS Access Key is required!");
+      return;
+    }
+    if (!awsSecretAccessKey.trim()) {
+      toast.error("AWS Secret Access Key is required!");
+      return;
+    }
+
     try {
       await octokit.request(
-        "POST /repos/waqas2714/k8-automate/actions/workflows/polling-test.yml/dispatches",
+        "POST /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/dispatches",
         {
           ref: "main",
-          inputs: { step1_name: userId },
+          inputs: {
+            user_name: userId,
+            awsAccessKey,
+            awsSecretAccessKey,
+            ec2_count: ec2Count,
+            instance_type: instanceType,
+          },
           headers: { "X-GitHub-Api-Version": "2022-11-28" },
         }
       );
 
-      console.log("Workflow dispatched!");
+      toast.success("Workflow dispatched successfully!");
+      localStorage.setItem("workflow_dispatched", "true"); // Store dispatch status
+      localStorage.removeItem("failed_step"); // Clear any previous failure
+      setWorkflowDispatched(true);
       navigate("/status");
     } catch (error) {
+      toast.error("There was an error. Please try again.");
       console.error("Error dispatching workflow:", error);
     }
   };
 
   return (
-    <div className="bg-yellow-400 p-4">
+    <div className="bg-yellow-400 p-6 rounded-lg">
+      {workflowDispatched && (
+        <div className="p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+          Your request is being handled. <Link to="/status" className="underline">See status</Link>.
+        </div>
+      )}
+
+      {failedStep && (
+        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          The step <strong>{failedStep}</strong> has failed. Please check and retry.
+        </div>
+      )}
+
       {!token || !isAuthenticated ? (
-        <button onClick={redirectToGitHub}>Login with GitHub</button>
-      ) : (
-        <button onClick={workflowDispatch} className="bg-blue-500 text-white px-4 py-2 rounded">
-          DISPATCH!!!
+        <button onClick={redirectToGitHub} className="bg-green-500 text-white px-4 py-2 rounded">
+          Login with GitHub
         </button>
+      ) : (
+        <div className="flex flex-col space-y-3">
+          <input type="text" placeholder="AWS Access Key" value={awsAccessKey} onChange={(e) => setAwsAccessKey(e.target.value)} className="p-2 border rounded" />
+          <input type="password" placeholder="AWS Secret Access Key" value={awsSecretAccessKey} onChange={(e) => setAwsSecretAccessKey(e.target.value)} className="p-2 border rounded" />
+          <input type="number" placeholder="Number of EC2 Instances" value={ec2Count} onChange={(e) => setEc2Count(e.target.value)} className="p-2 border rounded" />
+
+          <select value={instanceType} onChange={(e) => setInstanceType(e.target.value)} className="p-2 border rounded">
+            <option value="t2.micro">t2.micro</option>
+            <option value="t2.small">t2.small</option>
+            <option value="t2.medium">t2.medium</option>
+          </select>
+
+          <button onClick={workflowDispatch} className="bg-blue-500 text-white px-4 py-2 rounded">
+            Dispatch Workflow
+          </button>
+        </div>
       )}
     </div>
   );
