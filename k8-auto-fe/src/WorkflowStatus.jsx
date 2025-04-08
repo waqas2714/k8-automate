@@ -1,29 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Octokit } from "@octokit/core";
 
 function WorkflowStatus() {
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
-
   const userId = localStorage.getItem("uniqueUserId");
 
   const [steps, setSteps] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [polling, setPolling] = useState(null);
+  const pollingRef = useRef(null); // Track interval
 
   useEffect(() => {
-
     setLoading(true);
-    // Initial delay of 25 seconds before first check
+
+    // Start polling after an initial delay of 25 seconds
     const timeout = setTimeout(() => {
       getWorkflowRun();
-      const interval = setInterval(getWorkflowRun, 60000); // Poll every 60s
-      setPolling(interval);
+      pollingRef.current = setInterval(getWorkflowRun, 60000); // Poll every 60s
     }, 25000);
 
+    // Cleanup function to clear interval and timeout
     return () => {
       clearTimeout(timeout);
-      clearInterval(polling);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
     };
   }, []);
 
@@ -33,7 +34,7 @@ function WorkflowStatus() {
       setMessage("");
 
       const response = await octokit.request(
-        "GET /repos/waqas2714/k8-automate/actions/workflows/polling-test.yml/runs",
+        "GET /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/runs",
         { headers: { "X-GitHub-Api-Version": "2022-11-28" } }
       );
 
@@ -52,22 +53,35 @@ function WorkflowStatus() {
         );
 
         const jobs = jobsResponse.data.jobs;
-        if (jobs.length > 0 && jobs[0].steps.length > 1) {
+        if (jobs.length > 0) {
           const steps = jobs[0].steps;
-          foundSteps = steps
-            .filter((_, index) => index > 1)
-            .map((step) => ({
-              name: step.name,
-              status: step.status,
-            }));
+
+          foundSteps = steps.map((step) => ({
+            name: step.name,
+            status: step.status,
+          }));
+
           break;
         }
       }
 
       if (foundSteps.length > 0) {
         setSteps(foundSteps);
-        clearInterval(polling);
-        setPolling(null);
+
+        const failed = foundSteps.find((step) => step.status === "failed");
+        if (failed) {
+          localStorage.setItem("failed_step", failed.name);
+        } else {
+          localStorage.removeItem("workflow_dispatched");
+          localStorage.removeItem("failed_step");
+        }
+
+        // Stop polling if workflow completes (either success or failure)
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+
         setLoading(false);
       } else {
         setMessage("No jobs found.");
@@ -80,7 +94,6 @@ function WorkflowStatus() {
 
   return (
     <div className="p-4">
-
       {loading && (
         <div className="mt-4 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
@@ -95,7 +108,9 @@ function WorkflowStatus() {
             {steps.map((step, index) => (
               <li key={index}>
                 <span className="font-medium">{step.name}</span> -{" "}
-                <span className="text-gray-600">{step.status}</span>
+                <span className={`text-${step.status === "failed" ? "red" : "gray"}-600`}>
+                  {step.status}
+                </span>
               </li>
             ))}
           </ul>
