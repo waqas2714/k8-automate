@@ -121,6 +121,7 @@ jobs:
         id: ping
         run: |
           cd ansible-files
+          sudo chmod 600 ~/.ssh/id_rsa
           retries=3
           count=0
           success=false
