@@ -91,11 +91,10 @@ function AuthDispatch() {
 
     try {
       await octokit.request(
-        "POST /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/dispatches",
+        "POST /repos/waqas2714/k8-automate/actions/workflows/known-hosts-check.yml/dispatches",
         {
-          ref: "main",
+          ref: "ping-alr-made-instances",
           inputs: {
-            user_name: userId,
             awsAccessKey,
             awsSecretAccessKey,
             ec2_count: ec2Count,
