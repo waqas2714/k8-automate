@@ -26,6 +26,8 @@ function AuthDispatch() {
     const code = urlParams.get("code");
 
     if (code && !token) {
+      console.log("code found: " + code);
+      
       exchangeCodeForToken(code);
     } else if (token) {
       verifyToken(token);
@@ -41,7 +43,12 @@ function AuthDispatch() {
       });
 
       const data = await response.json();
+      console.log("data from be res:");
+      console.log(data);
+
       if (data.access_token) {
+
+        
         setToken(data.access_token);
         localStorage.setItem("github_token", data.access_token);
         verifyToken(data.access_token);
