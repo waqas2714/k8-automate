@@ -40,10 +40,8 @@ jobs:
   Provision:
     runs-on: ubuntu-latest
     steps:
-
       - name: ${{ github.event.inputs.user_name }}
         uses: actions/checkout@v3
-
 
       # Checkout the repository to access scripts, Terraform, and Ansible files
       - name: Checkout code
@@ -103,12 +101,11 @@ jobs:
           
           cat ansible-files/inventory.ini
 
-
       # Disable Strict Host Key Checking To Stop It From Prompting During SSH
       - name: Disable Strict Host Key Checking
         run: echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-        # Add all IP addresses to known_hosts
+      # Add all IP addresses to known_hosts
       - name: Add IPs to known_hosts
         run: |
           cd ansible-files
@@ -117,12 +114,36 @@ jobs:
             echo "Adding $ip to known_hosts"
             ssh-keyscan -H $ip >> ~/.ssh/known_hosts || true
           done
+          cat ~/.ssh/known_hosts
+
+      # Ping Instances and Retry if Failed
+      - name: Ping Instances (Retry if Failed)
+        run: |
+          cd ansible-files
+          retries=3
+          count=0
+          success=false
+          while [ $count -lt $retries ]; do
+            echo "Attempt $((count + 1)) to ping the instances..."
+            ansible all -i inventory.ini -m ping
+            if [ $? -eq 0 ]; then
+              success=true
+              break
+            fi
+            echo "Ping failed, retrying in 10 seconds..."
+            sleep 10
+            count=$((count + 1))
+          done
+
+          if [ "$success" = false ]; then
+            echo "Ping failed after 3 attempts. Aborting deployment."
+            exit 1
+          fi
 
       # Run Ansible Playbook
       - name: Run Ansible Playbook
+        if: success == 'true'
         run: |
           cd ansible-files
-          cat  ~/.ssh/id_rsa
           sudo chmod 600 ~/.ssh/id_rsa
           ansible-playbook -i inventory.ini playbook.yml -vv
-
