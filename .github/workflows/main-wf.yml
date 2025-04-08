@@ -118,6 +118,7 @@ jobs:
 
       # Ping Instances and Retry if Failed
       - name: Ping Instances (Retry if Failed)
+        id: ping
         run: |
           cd ansible-files
           retries=3
@@ -137,12 +138,15 @@ jobs:
 
           if [ "$success" = false ]; then
             echo "Ping failed after 3 attempts. Aborting deployment."
+            echo "success=false" >> $GITHUB_ENV
             exit 1
           fi
 
+          echo "success=true" >> $GITHUB_ENV
+
       # Run Ansible Playbook
       - name: Run Ansible Playbook
-        if: success == 'true'
+        if: env.success == 'true'
         run: |
           cd ansible-files
           sudo chmod 600 ~/.ssh/id_rsa
