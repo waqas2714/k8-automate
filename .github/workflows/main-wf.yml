@@ -66,7 +66,7 @@ jobs:
           # Set AWS credentials explicitly
           export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
           export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
-          export AWS_REGION=${{ github.event.inputs.aws_region }}  # Set AWS region here
+          export AWS_REGION=${{ github.event.inputs.aws_region }}
           
           # Get instance IDs for 'Master' and 'Worker-1' to 'Worker-10' using AWS CLI
           INSTANCE_IDS=$(aws ec2 describe-instances \
@@ -86,6 +86,10 @@ jobs:
  
       # - name: Check and Delete S3 Bucket if Exists
       #   run: |
+      #     export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+      #     export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+      #     export AWS_REGION=${{ github.event.inputs.aws_region }}
+
       #     aws s3api head-bucket --bucket k8s-infra-ssh-key 2>/dev/null
       #     if [ $? -eq 0 ]; then
       #       echo "Deleting existing S3 bucket k8s-infra-ssh-key"
@@ -100,6 +104,10 @@ jobs:
       # Check and Delete Security Groups if Exists
       - name: Check and Delete Security Groups if Exists
         run: |
+          export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+          export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+          export AWS_REGION=${{ github.event.inputs.aws_region }}
+          
           MASTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_master --query "SecurityGroups[].GroupId" --output text)
           WORKER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_worker --query "SecurityGroups[].GroupId" --output text)
           if [ -n "$MASTER_SG" ]; then
