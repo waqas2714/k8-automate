@@ -86,7 +86,7 @@ jobs:
       # Check if the S3 bucket exists and delete it
       - name: Check and Delete S3 Bucket if Exists
         run: |
-          BUCKET_NAME="k8s-infra-ssh-key"
+          export BUCKET_NAME="k8s-infra-ssh-key"
           aws s3api head-bucket --bucket $BUCKET_NAME 2>/dev/null
           if [ $? -eq 0 ]; then
             echo "Deleting existing S3 bucket $BUCKET_NAME"
