@@ -175,3 +175,12 @@ resource "aws_s3_object" "object" {
     create_before_destroy = true
   }
 }
+
+
+# Output the public IPs of both Master and Worker instances
+output "public_ips" {
+  value = concat(
+    [aws_instance.ec2_instance_master.public_ip],
+    [for instance in aws_instance.ec2_instance_worker : instance.public_ip]
+  )
+}
