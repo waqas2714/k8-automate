@@ -6,7 +6,9 @@ import { Link } from "react-router-dom"; // Import Link for navigation
 
 function AuthDispatch() {
   const navigate = useNavigate();
-  const [token, setToken] = useState(localStorage.getItem("github_token") || null);
+  const [token, setToken] = useState(
+    localStorage.getItem("github_token") || null
+  );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState("");
 
@@ -15,9 +17,6 @@ function AuthDispatch() {
   const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
   const [ec2Count, setEc2Count] = useState("3");
   const [instanceType, setInstanceType] = useState("t2.micro");
-
-  const [workflowDispatched, setWorkflowDispatched] = useState(localStorage.getItem("workflow_dispatched") === "true");
-  const [failedStep, setFailedStep] = useState(localStorage.getItem("failed_step") || null);
 
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
 
@@ -101,7 +100,6 @@ function AuthDispatch() {
       toast.success("Workflow dispatched successfully!");
       localStorage.setItem("workflow_dispatched", "true"); // Store dispatch status
       localStorage.removeItem("failed_step"); // Clear any previous failure
-      setWorkflowDispatched(true);
       navigate("/status");
     } catch (error) {
       toast.error("There was an error. Please try again.");
@@ -110,39 +108,72 @@ function AuthDispatch() {
   };
 
   return (
-    <div className="bg-yellow-400 p-6 rounded-lg">
-      {workflowDispatched && (
-        <div className="p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-          Your request is being handled. <Link to="/status" className="underline">See status</Link>.
-        </div>
-      )}
-
-      {failedStep && (
-        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          The step <strong>{failedStep}</strong> has failed. Please check and retry.
-        </div>
-      )}
-
+    <div className={`$bg-[${!token || !isAuthenticated ? '#25292E' : '#F7F7F7' }] p-6 w-screen h-screen flex flex-col justify-center items-center`}>
       {!token || !isAuthenticated ? (
-        <button onClick={redirectToGitHub} className="bg-green-500 text-white px-4 py-2 rounded">
-          Login with GitHub
-        </button>
+        <div
+          onClick={redirectToGitHub}
+          className="group bg-[#2A2F35] hover:bg-[#F7F7F7] transition-all ease-in-out duration-150 text-white p-6 rounded cursor-pointer"
+        >
+          <img
+            src="assets/github.png"
+            alt="logo"
+            className="h-24 mx-auto transition-all ease-in-out duration-100"
+          />
+          <h3 className="mt-4 font-semi-bold text-[#F7F7F7] group-hover:text-[#2A2F35] transition-all ease-in-out duration-150">
+            Login with GitHub
+          </h3>
+        </div>
       ) : (
-        <div className="flex flex-col space-y-3">
-          <input type="text" placeholder="AWS Access Key" value={awsAccessKey} onChange={(e) => setAwsAccessKey(e.target.value)} className="p-2 border rounded" />
-          <input type="password" placeholder="AWS Secret Access Key" value={awsSecretAccessKey} onChange={(e) => setAwsSecretAccessKey(e.target.value)} className="p-2 border rounded" />
-          <input type="number" placeholder="Number of EC2 Instances" value={ec2Count} onChange={(e) => setEc2Count(e.target.value)} className="p-2 border rounded" max={10} />
+        <>
+        <h1 className="text-4xl fixed top-24">K8-Automate</h1>
+        <div className="w-[100%] flex flex-wrap justify-center gap-x-4 gap-y-6">
+            <input
+              type="text"
+              placeholder="AWS Access Key"
+              value={awsAccessKey}
+              onChange={(e) => setAwsAccessKey(e.target.value)}
+              className="border rounded w-[80%] sm:w-[45%]"
+              style={{padding: 10}}
+            />
 
-          <select value={instanceType} onChange={(e) => setInstanceType(e.target.value)} className="p-2 border rounded">
-            <option value="t2.micro">t2.micro</option>
-            <option value="t2.small">t2.small</option>
-            <option value="t2.medium">t2.medium</option>
-          </select>
+            <input
+              type="password"
+              placeholder="AWS Secret Access Key"
+              value={awsSecretAccessKey}
+              onChange={(e) => setAwsSecretAccessKey(e.target.value)}
+              className="border rounded w-[80%] sm:w-[45%]"
+              style={{padding: 10}}
+            />
 
-          <button onClick={workflowDispatch} className="bg-blue-500 text-white px-4 py-2 rounded">
+            <input
+              type="number"
+              placeholder="Number of EC2 Instances"
+              value={ec2Count}
+              onChange={(e) => setEc2Count(e.target.value)}
+              className="border rounded w-[80%] sm:w-[45%]"
+              style={{padding: 10}}
+              max={10}
+            />
+
+            <select
+              value={instanceType}
+              onChange={(e) => setInstanceType(e.target.value)}
+              className="border rounded w-[80%] sm:w-[45%]"
+              style={{padding: 10}}
+            >
+              <option value="t2.micro">t2.micro</option>
+              <option value="t2.small">t2.small</option>
+              <option value="t2.medium">t2.medium</option>
+            </select>
+          <button
+            onClick={workflowDispatch}
+            className="mt-6 text-white rounded cursor-pointer bg-[#2A2F35] hover:bg-[#F7F7F7] hover:text-[#2A2F35] hover:border hover:border-[#2A2F35] transition-all duration-150 ease-in-out"
+            style={{paddingLeft: 20, paddingRight: 20, paddingTop: 15, paddingBottom: 15}}
+          >
             Dispatch Workflow
           </button>
         </div>
+        </>
       )}
     </div>
   );
