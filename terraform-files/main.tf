@@ -1,8 +1,4 @@
-provider "aws" {
-  region = var.aws_region
-}
-
-# Security Group for Worker Nodes (Allows all traffic)
+# Security Group for Worker Nodes
 resource "aws_security_group" "sg_worker" {
   name        = "sg_worker"
   description = "Allow all traffic for Worker nodes"
@@ -20,9 +16,13 @@ resource "aws_security_group" "sg_worker" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-# Security Group for Master Node (Specific Ports + SSH)
+# Security Group for Master Node
 resource "aws_security_group" "sg_master" {
   name        = "sg_master"
   description = "Allow specific ports for Master node and SSH access"
@@ -75,14 +75,21 @@ resource "aws_security_group" "sg_master" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Create an AWS Key Pair using the generated public key
 resource "aws_key_pair" "master_key" {
   key_name   = "master-key"
   public_key = var.ssh_public_key
-}
 
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
 # Create the Master instance with SSH access
 resource "aws_instance" "ec2_instance_master" {
@@ -92,7 +99,6 @@ resource "aws_instance" "ec2_instance_master" {
   vpc_security_group_ids = [aws_security_group.sg_master.id]
 
   key_name = aws_key_pair.master_key.key_name
-
 
   user_data = <<-EOF
               #!/bin/bash
@@ -105,6 +111,10 @@ resource "aws_instance" "ec2_instance_master" {
 
   tags = {
     Name = "Master"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -130,14 +140,22 @@ resource "aws_instance" "ec2_instance_worker" {
   tags = {
     Name = "Worker-${count.index + 1}"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-#S3 bucket for SSH
+# S3 bucket for SSH
 resource "aws_s3_bucket" "ssh_key_bucket" {
   bucket = "k8s-infra-ssh-key"
 
   tags = {
-    Name        = "SSH Key Bucket"
+    Name = "SSH Key Bucket"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -148,12 +166,8 @@ resource "aws_s3_object" "object" {
   source = var.s3_object_source
 
   depends_on = [aws_s3_bucket.ssh_key_bucket]   # Ensure the bucket exists before uploading
-}
 
-# Output the public IPs of both Master and Worker instances
-output "public_ips" {
-  value = concat(
-    [aws_instance.ec2_instance_master.public_ip],
-    [for instance in aws_instance.ec2_instance_worker : instance.public_ip]
-  )
+  lifecycle {
+    create_before_destroy = true
+  }
 }
