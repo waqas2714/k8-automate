@@ -60,6 +60,88 @@ jobs:
       - name: Make Scripts Executable
         run: chmod +x ./scripts/*.sh
 
+      # Check and Terminate EC2 Instances (Master or Worker-n) if Exists
+      - name: Check and Terminate EC2 Instances if Exists
+        run: |
+          # Set AWS credentials explicitly
+          export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+          export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+          export AWS_REGION=${{ github.event.inputs.aws_region }}
+          
+          # Get instance IDs for 'Master' and 'Worker-1' to 'Worker-10' using AWS CLI
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=Master,Worker-1,Worker-2,Worker-3,Worker-4,Worker-5,Worker-6,Worker-7,Worker-8,Worker-9,Worker-10" \
+            --query "Reservations[].Instances[].InstanceId" \
+            --output text)
+
+          # Check if any matching instances are found
+          if [ -n "$INSTANCE_IDS" ]; then
+            echo "Terminating EC2 instances: $INSTANCE_IDS"
+            aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+            aws ec2 wait instance-terminated --instance-ids $INSTANCE_IDS
+          else
+            echo "No matching EC2 instances (Master or Worker-n) found."
+          fi
+
+ 
+      - name: Check and Delete S3 Bucket if Exists
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+          export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+          export AWS_REGION=${{ github.event.inputs.aws_region }}
+
+          aws s3api head-bucket --bucket k8s-infra-ssh-key 2>/dev/null
+          if [ $? -eq 0 ]; then
+            echo "Deleting existing S3 bucket k8s-infra-ssh-key"
+            aws s3 rb s3://k8s-infra-ssh-key --force
+          elif [ $? -eq 255 ]; then
+            echo "AWS CLI encountered an error checking the bucket. Ensure that the AWS CLI is configured properly."
+            exit 255
+          else
+            echo "No existing S3 bucket found."
+          fi
+
+      # Check and Delete Security Groups if Exists
+      - name: Check and Delete Security Groups if Exists
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+          export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+          export AWS_REGION=${{ github.event.inputs.aws_region }}
+
+          MASTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_master --query "SecurityGroups[].GroupId" --output text)
+          WORKER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_worker --query "SecurityGroups[].GroupId" --output text)
+          if [ -n "$MASTER_SG" ]; then
+            echo "Deleting existing master security group $MASTER_SG"
+            aws ec2 delete-security-group --group-id $MASTER_SG
+          else
+            echo "No existing master security group found."
+          fi
+          if [ -n "$WORKER_SG" ]; then
+            echo "Deleting existing worker security group $WORKER_SG"
+            aws ec2 delete-security-group --group-id $WORKER_SG
+          else
+            echo "No existing worker security group found."
+          fi
+
+      # Check and Delete EC2 Key Pair if Exists
+      - name: Check and Delete EC2 Key Pair if Exists
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+          export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+          export AWS_REGION=${{ github.event.inputs.aws_region }}
+          
+          KEY_PAIR_NAME="master-key"
+          
+          # Check if the key pair exists
+          KEY_PAIR_EXISTS=$(aws ec2 describe-key-pairs --key-name $KEY_PAIR_NAME --query "KeyPairs[0].KeyName" --output text)
+
+          if [ "$KEY_PAIR_EXISTS" == "$KEY_PAIR_NAME" ]; then
+            echo "Key pair $KEY_PAIR_NAME exists. Deleting it..."
+            aws ec2 delete-key-pair --key-name $KEY_PAIR_NAME
+          else
+            echo "Key pair $KEY_PAIR_NAME does not exist."
+          fi
+
       # Install Terraform
       - name: Install Terraform
         run: ./scripts/install-terraform.sh

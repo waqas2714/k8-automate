@@ -86,7 +86,7 @@ function AuthDispatch() {
       await octokit.request(
         "POST /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/dispatches",
         {
-          ref: "main",
+          ref: "remove-duplicates-in-wf",
           inputs: {
             user_name: userId,
             awsAccessKey,
@@ -131,7 +131,7 @@ function AuthDispatch() {
         <div className="flex flex-col space-y-3">
           <input type="text" placeholder="AWS Access Key" value={awsAccessKey} onChange={(e) => setAwsAccessKey(e.target.value)} className="p-2 border rounded" />
           <input type="password" placeholder="AWS Secret Access Key" value={awsSecretAccessKey} onChange={(e) => setAwsSecretAccessKey(e.target.value)} className="p-2 border rounded" />
-          <input type="number" placeholder="Number of EC2 Instances" value={ec2Count} onChange={(e) => setEc2Count(e.target.value)} className="p-2 border rounded" />
+          <input type="number" placeholder="Number of EC2 Instances" value={ec2Count} onChange={(e) => setEc2Count(e.target.value)} className="p-2 border rounded" max={10} />
 
           <select value={instanceType} onChange={(e) => setInstanceType(e.target.value)} className="p-2 border rounded">
             <option value="t2.micro">t2.micro</option>
