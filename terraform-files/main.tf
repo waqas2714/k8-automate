@@ -1,3 +1,7 @@
+provider "aws" {
+  region = var.aws_region
+}
+
 # Security Group for Worker Nodes
 resource "aws_security_group" "sg_worker" {
   name        = "sg_worker"
