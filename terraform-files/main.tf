@@ -21,9 +21,10 @@ resource "aws_security_group" "sg_worker" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
+lifecycle {
+  create_before_destroy = true
+  prevent_destroy       = false
+}
 }
 
 # Security Group for Master Node
@@ -80,9 +81,10 @@ resource "aws_security_group" "sg_master" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
+lifecycle {
+  create_before_destroy = true
+  prevent_destroy       = false
+}
 }
 
 # Create an AWS Key Pair using the generated public key
@@ -90,9 +92,10 @@ resource "aws_key_pair" "master_key" {
   key_name   = "master-key"
   public_key = var.ssh_public_key
 
-  lifecycle {
-    create_before_destroy = true
-  }
+lifecycle {
+  create_before_destroy = true
+  prevent_destroy       = false
+}
 }
 
 # Create the Master instance with SSH access
@@ -118,8 +121,9 @@ resource "aws_instance" "ec2_instance_master" {
   }
 
   lifecycle {
-    create_before_destroy = true
-  }
+  create_before_destroy = true
+  prevent_destroy       = false
+}
 }
 
 # Create the Worker instances with SSH access
@@ -146,8 +150,9 @@ resource "aws_instance" "ec2_instance_worker" {
   }
 
   lifecycle {
-    create_before_destroy = true
-  }
+  create_before_destroy = true
+  prevent_destroy       = false
+}
 }
 
 # S3 bucket for SSH
@@ -159,8 +164,10 @@ resource "aws_s3_bucket" "ssh_key_bucket" {
   }
 
   lifecycle {
-    create_before_destroy = true
-  }
+  create_before_destroy = true
+  prevent_destroy       = false
+}
+
 }
 
 # Upload the SSH key to the S3 bucket
@@ -171,9 +178,6 @@ resource "aws_s3_object" "object" {
 
   depends_on = [aws_s3_bucket.ssh_key_bucket]   # Ensure the bucket exists before uploading
 
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 

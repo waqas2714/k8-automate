@@ -111,11 +111,7 @@ function AuthDispatch() {
 
   return (
     <div className="bg-yellow-400 p-6 rounded-lg">
-      {workflowDispatched && (
-        <div className="p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-          Your request is being handled. <Link to="/status" className="underline">See status</Link>.
-        </div>
-      )}
+      
 
       {failedStep && (
         <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
