@@ -86,7 +86,7 @@ function AuthDispatch() {
       await octokit.request(
         "POST /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/dispatches",
         {
-          ref: "main",
+          ref: "parallel-jobs",
           inputs: {
             user_name: userId,
             awsAccessKey,

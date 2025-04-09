@@ -74,7 +74,7 @@ jobs:
   # Check and Delete Security Groups if Exists
   CheckDeleteSecurityGroups:
     runs-on: ubuntu-latest
-    needs: PrepareEnvironment
+    needs: [PrepareEnvironment, CheckTerminateEC2]
     steps:
       - name: Check and Delete Security Groups if Exists
         run: |
