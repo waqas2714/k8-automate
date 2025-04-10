@@ -130,15 +130,18 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
           export AWS_REGION=${{ github.event.inputs.aws_region }}
 
-          # Check if the key pair exists
-          KEY_PAIR_EXISTS=$(aws ec2 describe-key-pairs --key-name master-key --query "KeyPairs[0].KeyName" --output text)
+          # Check if the EC2 key pair exists
+          echo "Checking if EC2 key pair 'master-key' exists..."
 
-          if [ "$KEY_PAIR_EXISTS" == "master-key" ]; then
-            echo "Key pair master-key exists. Deleting it..."
+          # Attempt to describe the key pair. If it succeeds, delete the key pair
+          aws ec2 describe-key-pairs --key-name master-key --query "KeyPairs[0].KeyName" --output text 2>&1 && {
+            echo "Key pair 'master-key' exists. Deleting it..."
             aws ec2 delete-key-pair --key-name master-key
-          else
-            echo "Key pair master-key does not exist."
-          fi
+          }
+
+          # If the key pair does not exist, handle it
+          echo "Key pair 'master-key' does not exist."
+
 
       # Install Terraform
       - name: Install Terraform
