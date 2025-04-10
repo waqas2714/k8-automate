@@ -84,23 +84,26 @@ jobs:
           fi
 
  
-      - name: Check and Delete S3 Bucket if Exists
-        run: |
-          export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
-          export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
-          export AWS_REGION=${{ github.event.inputs.aws_region }}
-
-          aws s3api head-bucket --bucket k8s-infra-ssh-key 2>/dev/null
-          if [ $? -eq 0 ]; then
-            echo "Deleting existing S3 bucket k8s-infra-ssh-key"
-            aws s3 rb s3://k8s-infra-ssh-key --force
-          elif [ $? -eq 255 ]; then
-            echo "AWS CLI encountered an error checking the bucket. Ensure that the AWS CLI is configured properly."
-            exit 255
-          else
-            echo "No existing S3 bucket found."
-          fi
-
+        - name: Check and Delete S3 Bucket if Exists
+          run: |
+            export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+            export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+            export AWS_REGION=${{ github.event.inputs.aws_region }}
+        
+            # Check if the S3 bucket exists
+            echo "Checking if the S3 bucket k8s-infra-ssh-key exists..."
+            BUCKET_EXISTS=$(aws s3api head-bucket --bucket k8s-infra-ssh-key 2>&1)
+        
+            if echo "$BUCKET_EXISTS" | grep -q 'Not Found'; then
+              echo "No existing S3 bucket found."
+            elif echo "$BUCKET_EXISTS" | grep -q 'Forbidden'; then
+              echo "Permission error: Check your AWS credentials and permissions."
+              exit 1
+            else
+              echo "Deleting existing S3 bucket k8s-infra-ssh-key"
+              aws s3 rb s3://k8s-infra-ssh-key --force
+            fi
+        
       # Check and Delete Security Groups if Exists
       - name: Check and Delete Security Groups if Exists
         run: |
