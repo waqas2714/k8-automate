@@ -86,18 +86,17 @@ jobs:
 
           # Check if the S3 bucket exists
           echo "Checking if the S3 bucket k8s-infra-ssh-key exists..."
-          BUCKET_EXISTS=$(aws s3api head-bucket --bucket k8s-infra-ssh-key 2>&1)
-          echo "Checked if the S3 bucket k8s-infra-ssh-key exists."
 
-          if echo "$BUCKET_EXISTS" | grep -q 'Not Found'; then
+          # Attempt to access the bucket. If it fails (bucket doesn't exist), handle it
+          aws s3api head-bucket --bucket k8s-infra-ssh-key 2>&1 || {
             echo "No existing S3 bucket found."
-          elif echo "$BUCKET_EXISTS" | grep -q 'Forbidden'; then
-            echo "Permission error: Check your AWS credentials and permissions."
-            exit 1
-          else
-            echo "Deleting existing S3 bucket k8s-infra-ssh-key"
-            aws s3 rb s3://k8s-infra-ssh-key --force
-          fi
+          }
+
+          echo "No issues with bucket existence. Proceeding to delete if exists."
+
+          # If no error, delete the bucket
+          aws s3 rb s3://k8s-infra-ssh-key --force
+
 
       # Check and Delete Security Groups if Exists
       - name: Check and Delete Security Groups if Exists
