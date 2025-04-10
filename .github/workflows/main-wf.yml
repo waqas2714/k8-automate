@@ -87,6 +87,7 @@ jobs:
           # Check if the S3 bucket exists
           echo "Checking if the S3 bucket k8s-infra-ssh-key exists..."
           BUCKET_EXISTS=$(aws s3api head-bucket --bucket k8s-infra-ssh-key 2>&1)
+          echo "Checked if the S3 bucket k8s-infra-ssh-key exists."
 
           if echo "$BUCKET_EXISTS" | grep -q 'Not Found'; then
             echo "No existing S3 bucket found."
