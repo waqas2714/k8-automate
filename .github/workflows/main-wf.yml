@@ -210,23 +210,30 @@ jobs:
           success=false
           while [ $count -lt $retries ]; do
             echo "Attempt $((count + 1)) to ping the instances..."
-            ansible all -i inventory.ini -m ping
+            
+            # Run ansible ping module on all instances
+            ansible all -i inventory.ini -m ping || {
+              echo "Ping failed, retrying in 10 seconds..."
+              sleep 10
+            }
+      
+            # Check if ansible ping was successful
             if [ $? -eq 0 ]; then
               success=true
               break
             fi
-            echo "Ping failed, retrying in 10 seconds..."
-            sleep 10
+      
             count=$((count + 1))
           done
-
+      
           if [ "$success" = false ]; then
             echo "Ping failed after 3 attempts. Aborting deployment."
             echo "success=false" >> $GITHUB_ENV
             exit 1
           fi
-
+      
           echo "success=true" >> $GITHUB_ENV
+    
 
       # Run Ansible Playbook
       - name: Run Ansible Playbook
