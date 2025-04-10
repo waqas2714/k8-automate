@@ -123,25 +123,22 @@ jobs:
             echo "No existing worker security group found."
           fi
 
-      # Check and Delete EC2 Key Pair if Exists
       - name: Check and Delete EC2 Key Pair if Exists
         run: |
           export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
           export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
           export AWS_REGION=${{ github.event.inputs.aws_region }}
           
-          KEY_PAIR_NAME="master-key"
-          
           # Check if the key pair exists
-          KEY_PAIR_EXISTS=$(aws ec2 describe-key-pairs --key-name $KEY_PAIR_NAME --query "KeyPairs[0].KeyName" --output text)
-
-          if [ "$KEY_PAIR_EXISTS" == "$KEY_PAIR_NAME" ]; then
-            echo "Key pair $KEY_PAIR_NAME exists. Deleting it..."
-            aws ec2 delete-key-pair --key-name $KEY_PAIR_NAME
+          KEY_PAIR_EXISTS=$(aws ec2 describe-key-pairs --key-name master-key --query "KeyPairs[0].KeyName" --output text)
+      
+          if [ "$KEY_PAIR_EXISTS" == "master-key" ]; then
+            echo "Key pair master-key exists. Deleting it..."
+            aws ec2 delete-key-pair --key-name master-key
           else
-            echo "Key pair $KEY_PAIR_NAME does not exist."
+            echo "Key pair master-key does not exist."
           fi
-
+        
       # Install Terraform
       - name: Install Terraform
         run: ./scripts/install-terraform.sh
