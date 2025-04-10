@@ -7,34 +7,28 @@ on:
       user_name:
         description: "User's Name"
         required: true
-
       awsAccessKey:
-        description: 'AWS Access Key'
+        description: "AWS Access Key"
         required: true
-
       awsSecretAccessKey:
-        description: 'AWS Secret Access Key'
+        description: "AWS Secret Access Key"
         required: true
-
       aws_region:
-        description: 'AWS region to deploy resources'
+        description: "AWS region to deploy resources"
         required: false
-        default: 'us-east-1'
-
+        default: "us-east-1"
       ec2_count:
-        description: 'Number of worker EC2 instances to create'
+        description: "Number of worker EC2 instances to create"
         required: false
-        default: '3'
-
+        default: "3"
       ami_id:
-        description: 'AMI ID for the EC2 instances'
+        description: "AMI ID for the EC2 instances"
         required: false
-        default: 'ami-04b4f1a9cf54c11d0'
-
+        default: "ami-04b4f1a9cf54c11d0"
       instance_type:
-        description: 'Instance type for the EC2 instances'
+        description: "Instance type for the EC2 instances"
         required: false
-        default: 't3.micro'
+        default: "t3.micro"
 
 jobs:
   Provision:
@@ -67,7 +61,7 @@ jobs:
           export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
           export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
           export AWS_REGION=${{ github.event.inputs.aws_region }}
-          
+
           # Get instance IDs for 'Master' and 'Worker-1' to 'Worker-10' using AWS CLI
           INSTANCE_IDS=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=Master,Worker-1,Worker-2,Worker-3,Worker-4,Worker-5,Worker-6,Worker-7,Worker-8,Worker-9,Worker-10" \
@@ -83,27 +77,27 @@ jobs:
             echo "No matching EC2 instances (Master or Worker-n) found."
           fi
 
- 
-        - name: Check and Delete S3 Bucket if Exists
-          run: |
-            export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
-            export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
-            export AWS_REGION=${{ github.event.inputs.aws_region }}
-        
-            # Check if the S3 bucket exists
-            echo "Checking if the S3 bucket k8s-infra-ssh-key exists..."
-            BUCKET_EXISTS=$(aws s3api head-bucket --bucket k8s-infra-ssh-key 2>&1)
-        
-            if echo "$BUCKET_EXISTS" | grep -q 'Not Found'; then
-              echo "No existing S3 bucket found."
-            elif echo "$BUCKET_EXISTS" | grep -q 'Forbidden'; then
-              echo "Permission error: Check your AWS credentials and permissions."
-              exit 1
-            else
-              echo "Deleting existing S3 bucket k8s-infra-ssh-key"
-              aws s3 rb s3://k8s-infra-ssh-key --force
-            fi
-        
+      # Check and Delete S3 Bucket if Exists
+      - name: Check and Delete S3 Bucket if Exists
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
+          export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
+          export AWS_REGION=${{ github.event.inputs.aws_region }}
+
+          # Check if the S3 bucket exists
+          echo "Checking if the S3 bucket k8s-infra-ssh-key exists..."
+          BUCKET_EXISTS=$(aws s3api head-bucket --bucket k8s-infra-ssh-key 2>&1)
+
+          if echo "$BUCKET_EXISTS" | grep -q 'Not Found'; then
+            echo "No existing S3 bucket found."
+          elif echo "$BUCKET_EXISTS" | grep -q 'Forbidden'; then
+            echo "Permission error: Check your AWS credentials and permissions."
+            exit 1
+          else
+            echo "Deleting existing S3 bucket k8s-infra-ssh-key"
+            aws s3 rb s3://k8s-infra-ssh-key --force
+          fi
+
       # Check and Delete Security Groups if Exists
       - name: Check and Delete Security Groups if Exists
         run: |
@@ -113,12 +107,14 @@ jobs:
 
           MASTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_master --query "SecurityGroups[].GroupId" --output text)
           WORKER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=sg_worker --query "SecurityGroups[].GroupId" --output text)
+
           if [ -n "$MASTER_SG" ]; then
             echo "Deleting existing master security group $MASTER_SG"
             aws ec2 delete-security-group --group-id $MASTER_SG
           else
             echo "No existing master security group found."
           fi
+
           if [ -n "$WORKER_SG" ]; then
             echo "Deleting existing worker security group $WORKER_SG"
             aws ec2 delete-security-group --group-id $WORKER_SG
@@ -126,22 +122,23 @@ jobs:
             echo "No existing worker security group found."
           fi
 
+      # Check and Delete EC2 Key Pair if Exists
       - name: Check and Delete EC2 Key Pair if Exists
         run: |
           export AWS_ACCESS_KEY_ID=${{ github.event.inputs.awsAccessKey }}
           export AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.awsSecretAccessKey }}
           export AWS_REGION=${{ github.event.inputs.aws_region }}
-          
+
           # Check if the key pair exists
           KEY_PAIR_EXISTS=$(aws ec2 describe-key-pairs --key-name master-key --query "KeyPairs[0].KeyName" --output text)
-      
+
           if [ "$KEY_PAIR_EXISTS" == "master-key" ]; then
             echo "Key pair master-key exists. Deleting it..."
             aws ec2 delete-key-pair --key-name master-key
           else
             echo "Key pair master-key does not exist."
           fi
-        
+
       # Install Terraform
       - name: Install Terraform
         run: ./scripts/install-terraform.sh
@@ -161,7 +158,7 @@ jobs:
             -var="instance_type=${{ github.event.inputs.instance_type }}" \
             -var="ssh_public_key=$(cat ../ssh-key_pub.pem)" \
             -var="s3_object_source=../ssh-key.pem"
-        
+
           # Capture the output IPs
           terraform output -json public_ips > ../ansible-files/ips.json
           cat ../ansible-files/ips.json
@@ -180,7 +177,7 @@ jobs:
           echo "[all:vars]" >> ansible-files/inventory.ini
           echo "ansible_user=ubuntu" >> ansible-files/inventory.ini
           echo "ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ansible-files/inventory.ini
-          
+
           cat ansible-files/inventory.ini
 
       # Disable Strict Host Key Checking To Stop It From Prompting During SSH
