@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Octokit } from "@octokit/core";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom"; // Import Link for navigation
 
 function AuthDispatch() {
   const navigate = useNavigate();
@@ -108,18 +107,23 @@ function AuthDispatch() {
   };
 
   return (
-    <div className={`$bg-[${!token || !isAuthenticated ? '#25292E' : '#F7F7F7' }] p-6 w-screen h-screen flex flex-col justify-center items-center`}>
+    <div
+  className={`p-6 w-screen h-screen flex flex-col justify-center items-center`}
+  style={{ backgroundColor: !token || !isAuthenticated ? "#25292E" : "#F7F7F7" }}
+>
       {!token || !isAuthenticated ? (
         <div
           onClick={redirectToGitHub}
-          className="group bg-[#2A2F35] hover:bg-[#F7F7F7] transition-all ease-in-out duration-150 text-white p-6 rounded cursor-pointer"
+          className="group bg-[#2A2F35] hover:bg-[#F7F7F7] transition-all ease-in-out duration-150 text-white rounded cursor-pointer flex flex-col items-center space-y-1.5 p-4"
         >
-          <img
-            src="assets/github.png"
-            alt="logo"
-            className="h-24 mx-auto transition-all ease-in-out duration-100"
-          />
-          <h3 className="mt-4 font-semi-bold text-[#F7F7F7] group-hover:text-[#2A2F35] transition-all ease-in-out duration-150">
+          <div>
+            <img
+              src="assets/github.png"
+              alt="logo"
+              className="h-24 transition-all ease-in-out duration-100"
+            />
+          </div>
+          <h3 className="font-semi-bold text-[#F7F7F7] group-hover:text-[#2A2F35] transition-all ease-in-out duration-150">
             Login with GitHub
           </h3>
         </div>
