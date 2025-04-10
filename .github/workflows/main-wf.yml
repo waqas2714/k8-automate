@@ -212,7 +212,7 @@ jobs:
             echo "Attempt $((count + 1)) to ping the instances..."
             
             # Run ansible ping module on all instances
-            ansible all -i inventory.ini -m ping || {
+            ansible all -i inventory.ini -m ping 2>&1 || {
               echo "Ping failed, retrying in 10 seconds..."
               sleep 10
             }
