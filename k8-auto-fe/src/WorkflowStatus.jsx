@@ -10,11 +10,8 @@ function WorkflowStatus() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(null);
   const pollingRef = useRef(null); // Track interval
-
-  useEffect(() => {
-    console.log(steps);
-  }, [steps]);
 
   useEffect(() => {
     // Start polling after an initial delay of 25 seconds
@@ -137,7 +134,7 @@ function WorkflowStatus() {
     // If all steps are successful, show a success message
     const allSuccess = steps.every((step) => step.conclusion === "success");
     if (allSuccess) {
-      setMessage("Your cluster has been deployed successfully!");
+      setSuccessMsg("Your cluster has been deployed successfully!");
     }
   };
 
@@ -195,9 +192,9 @@ function WorkflowStatus() {
           </div>
 
           {/* Show success message if all steps are successful */}
-          {message && !failed && (
+          {successMsg && (
             <div className="mt-6 text-center text-green-500 font-semibold">
-              {message}
+              {successMsg}
             </div>
           )}
         </div>
