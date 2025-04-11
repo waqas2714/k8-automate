@@ -89,7 +89,7 @@ resource "aws_instance" "ec2_instance_master" {
   ami           = var.ami_id
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_security_group.sg_master.id]
+  vpc_security_group_ids = [aws_security_group.sg_master.id, aws_security_group.sg_worker.id]
 
   key_name = aws_key_pair.master_key.key_name
 
