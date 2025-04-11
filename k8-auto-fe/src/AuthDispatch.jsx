@@ -32,7 +32,7 @@ function AuthDispatch() {
 
   const exchangeCodeForToken = async (code) => {
     try {
-      const response = await fetch("http://localhost:3001/authenticate", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/authenticate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
