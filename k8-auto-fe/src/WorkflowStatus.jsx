@@ -6,7 +6,6 @@ function WorkflowStatus() {
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
   const userId = localStorage.getItem("uniqueUserId");
 
-
   const [steps, setSteps] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -21,6 +20,7 @@ function WorkflowStatus() {
     // Start polling after an initial delay of 25 seconds
     const timeout = setTimeout(() => {
       getWorkflowRun();
+      setLoading(false);
       pollingRef.current = setInterval(getWorkflowRun, 60000); // Poll every 60s
     }, 25000);
 
@@ -133,7 +133,12 @@ function WorkflowStatus() {
 
       setFailed(true);
     }
-    setLoading(false);
+
+    // If all steps are successful, show a success message
+    const allSuccess = steps.every((step) => step.conclusion === "success");
+    if (allSuccess) {
+      setMessage("Your cluster has been deployed successfully!");
+    }
   };
 
   const getStepBackgroundColor = (status) => {
@@ -146,6 +151,8 @@ function WorkflowStatus() {
         return "bg-[#B72B00]"; // Red for failed
       case "canceled":
         return "bg-[#949494]"; // Gray for canceled
+      case "in_progress":
+        return "bg-[#F7D000]"; // Yellow for in progress
       default:
         return "bg-gray-400"; // Default fallback color
     }
@@ -165,7 +172,7 @@ function WorkflowStatus() {
           <h2 className="font-bold text-2xl text-white">Progress:</h2>
           <div className="flex flex-wrap space-y-5 space-x-2 mt-6">
             {steps.map((step, index) => {
-              if (index < 2) {
+              if (index < 2 || index > 15) {
                 return;
               }
               return (
@@ -177,10 +184,22 @@ function WorkflowStatus() {
                     <h1 className="font-medium text-sm">{index - 1}.</h1>
                     <h1 className="font-medium text-sm ml-1">{step.name}</h1>
                   </div>
+
+                  {/* Add loader for "in_progress" steps */}
+                  {step.status === "in_progress" && (
+                    <div className="ml-3 animate-spin rounded-full h-6 w-6 border-t-2 border-[#F7F7F7] border-solid"></div>
+                  )}
                 </div>
               );
             })}
           </div>
+
+          {/* Show success message if all steps are successful */}
+          {message && !failed && (
+            <div className="mt-6 text-center text-green-500 font-semibold">
+              {message}
+            </div>
+          )}
         </div>
       )}
     </div>
