@@ -4,13 +4,21 @@ const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
+
+// Allow CORS only for your deployed frontend
+const corsOptions = {
+  origin: "https://k8-automate.vercel.app", // Replace with the correct frontend URL
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions)); // Apply CORS with specific options
+
 app.use(express.json());
 
 app.get("/health", async (req, res) => {
   res.send("I am healthy :)");
-})
-
+});
 
 app.post("/authenticate", async (req, res) => {
   const { code } = req.body;
@@ -22,7 +30,7 @@ app.post("/authenticate", async (req, res) => {
   };
 
   console.log(params);
-  
+
   try {
     const response = await axios.post("https://github.com/login/oauth/access_token", params, {
       headers: {
