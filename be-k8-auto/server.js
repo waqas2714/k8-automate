@@ -17,7 +17,7 @@ app.use(cors(corsOptions)); // Apply CORS with specific options
 app.use(express.json());
 
 app.get("/health", async (req, res) => {
-  res.send("I am healthy :)");
+  res.json("I am healthy :)");
 });
 
 app.post("/authenticate", async (req, res) => {
