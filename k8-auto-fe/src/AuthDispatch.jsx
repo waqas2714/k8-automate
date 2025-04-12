@@ -5,9 +5,7 @@ import { toast } from "react-toastify";
 
 function AuthDispatch() {
   const navigate = useNavigate();
-  const [token, setToken] = useState(
-    localStorage.getItem("github_token") || null
-  );
+  const [token, setToken] = useState(localStorage.getItem("github_token") || null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState("");
 
@@ -17,6 +15,9 @@ function AuthDispatch() {
   const [ec2Count, setEc2Count] = useState("3");
   const [instanceType, setInstanceType] = useState("t2.micro");
 
+  // State to track loading
+  const [loading, setLoading] = useState(false);
+
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
 
   useEffect(() => {
@@ -24,6 +25,7 @@ function AuthDispatch() {
     const code = urlParams.get("code");
 
     if (code && !token) {
+      setLoading(true); // Start loading state
       exchangeCodeForToken(code);
     } else if (token) {
       verifyToken(token);
@@ -57,11 +59,13 @@ function AuthDispatch() {
       localStorage.setItem("uniqueUserId", response.data.login);
       setUserId(response.data.login);
       setIsAuthenticated(true);
+      setLoading(false); // Stop loading state
     } catch (error) {
       console.error("Invalid Token:", error);
       setIsAuthenticated(false);
       setToken(null);
       localStorage.removeItem("github_token");
+      setLoading(false); // Stop loading state
     }
   };
 
@@ -108,36 +112,43 @@ function AuthDispatch() {
 
   return (
     <div
-  className={`p-6 w-screen h-screen flex flex-col justify-center items-center`}
-  style={{ backgroundColor: !token || !isAuthenticated ? "#25292E" : "#F7F7F7" }}
->
+      className={`p-6 w-screen h-screen flex flex-col justify-center items-center`}
+      style={{ backgroundColor: !token || !isAuthenticated ? "#25292E" : "#F7F7F7" }}
+    >
       {!token || !isAuthenticated ? (
-        <div
-          onClick={redirectToGitHub}
-          className="group bg-[#2A2F35] hover:bg-[#F7F7F7] transition-all ease-in-out duration-150 text-white rounded cursor-pointer flex flex-col items-center space-y-1.5 p-4"
-        >
-          <div>
-            <img
-              src="assets/github.png"
-              alt="logo"
-              className="h-24 transition-all ease-in-out duration-100"
-            />
+        loading ? (
+          <div className="spinner-container">
+            {/* Spinner component or animation */}
+            <div className="loader">Loading...</div>
           </div>
-          <h3 className="font-semi-bold text-[#F7F7F7] group-hover:text-[#2A2F35] transition-all ease-in-out duration-150">
-            Login with GitHub
-          </h3>
-        </div>
+        ) : (
+          <div
+            onClick={redirectToGitHub}
+            className="group bg-[#2A2F35] hover:bg-[#F7F7F7] transition-all ease-in-out duration-150 text-white rounded cursor-pointer flex flex-col items-center space-y-1.5 p-4"
+          >
+            <div>
+              <img
+                src="assets/github.png"
+                alt="logo"
+                className="h-24 transition-all ease-in-out duration-100"
+              />
+            </div>
+            <h3 className="font-semi-bold text-[#F7F7F7] group-hover:text-[#2A2F35] transition-all ease-in-out duration-150">
+              Login with GitHub
+            </h3>
+          </div>
+        )
       ) : (
         <>
-        <h1 className="text-4xl fixed top-24">K8-Automate</h1>
-        <div className="w-[100%] flex flex-wrap justify-center gap-x-4 gap-y-6">
+          <h1 className="text-4xl fixed top-24">K8-Automate</h1>
+          <div className="w-[100%] flex flex-wrap justify-center gap-x-4 gap-y-6">
             <input
               type="text"
               placeholder="AWS Access Key"
               value={awsAccessKey}
               onChange={(e) => setAwsAccessKey(e.target.value)}
               className="border rounded w-[80%] sm:w-[45%]"
-              style={{padding: 10}}
+              style={{ padding: 10 }}
             />
 
             <input
@@ -146,7 +157,7 @@ function AuthDispatch() {
               value={awsSecretAccessKey}
               onChange={(e) => setAwsSecretAccessKey(e.target.value)}
               className="border rounded w-[80%] sm:w-[45%]"
-              style={{padding: 10}}
+              style={{ padding: 10 }}
             />
 
             <input
@@ -155,7 +166,7 @@ function AuthDispatch() {
               value={ec2Count}
               onChange={(e) => setEc2Count(e.target.value)}
               className="border rounded w-[80%] sm:w-[45%]"
-              style={{padding: 10}}
+              style={{ padding: 10 }}
               max={10}
             />
 
@@ -163,20 +174,20 @@ function AuthDispatch() {
               value={instanceType}
               onChange={(e) => setInstanceType(e.target.value)}
               className="border rounded w-[80%] sm:w-[45%]"
-              style={{padding: 10}}
+              style={{ padding: 10 }}
             >
               <option value="t2.micro">t2.micro</option>
               <option value="t2.small">t2.small</option>
               <option value="t2.medium">t2.medium</option>
             </select>
-          <button
-            onClick={workflowDispatch}
-            className="mt-6 text-white rounded cursor-pointer bg-[#2A2F35] hover:bg-[#F7F7F7] hover:text-[#2A2F35] hover:border hover:border-[#2A2F35] transition-all duration-150 ease-in-out"
-            style={{paddingLeft: 20, paddingRight: 20, paddingTop: 15, paddingBottom: 15}}
-          >
-            Dispatch Workflow
-          </button>
-        </div>
+            <button
+              onClick={workflowDispatch}
+              className="mt-6 text-white rounded cursor-pointer bg-[#2A2F35] hover:bg-[#F7F7F7] hover:text-[#2A2F35] hover:border hover:border-[#2A2F35] transition-all duration-150 ease-in-out"
+              style={{ paddingLeft: 20, paddingRight: 20, paddingTop: 15, paddingBottom: 15 }}
+            >
+              Dispatch Workflow
+            </button>
+          </div>
         </>
       )}
     </div>
