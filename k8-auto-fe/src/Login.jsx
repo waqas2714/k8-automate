@@ -45,7 +45,7 @@ function Login() {
   return (
     <div className="p-6 w-screen h-screen flex justify-center items-center bg-[#25292E]">
       {loading ? (
-        <div className="loader">Loading...</div>
+        <div className="loader text-white">Loading...</div>
       ) : (
         <div
           onClick={redirectToGitHub}

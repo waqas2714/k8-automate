@@ -46,7 +46,7 @@ function Provision() {
       await octokit.request(
         "POST /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/dispatches",
         {
-          ref: "revamp",
+          ref: "main",
           inputs: {
             user_name: userId,
             awsAccessKey,
@@ -67,7 +67,7 @@ function Provision() {
     }
   };
 
-  if (loading) return <div className="p-10">Loading user info...</div>;
+  if (loading) return <div className="ml-3 animate-spin rounded-full h-6 w-6 border-t-2 border-[#25292E] border-solid"></div>;
 
   return (
     <div className="p-6 w-screen h-screen flex flex-col justify-center items-center bg-[#F7F7F7]">
