@@ -1,6 +1,6 @@
-const { default: axios } = require("axios");
+const axios = require("axios");
 
-const authenticate = (req, res) => async (req, res) => {
+const authenticate = async (req, res) => {
     const { code } = req.body;
   
     const params = {
@@ -16,6 +16,7 @@ const authenticate = (req, res) => async (req, res) => {
         },
       });
   
+      
       res.json(response.data);
     } catch (error) {
       console.error("Error fetching access token:", error.response ? error.response.data : error.message);
