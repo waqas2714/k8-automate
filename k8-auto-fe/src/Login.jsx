@@ -20,7 +20,7 @@ function Login() {
 
   const exchangeCodeForToken = async (code) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/authenticate`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/auth/authenticate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
