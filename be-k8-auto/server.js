@@ -7,7 +7,7 @@ const app = express();
 
 // Allow CORS only for your deployed frontend
 const corsOptions = {
-  origin: "https://k8-automate.vercel.app", // Replace with the correct frontend URL
+  origin: ["https://k8-automate.vercel.app", "http://localhost:5173"], // Replace with the correct frontend URL
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
