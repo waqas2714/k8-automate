@@ -4,7 +4,6 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
-import AuthDispatch from './AuthDispatch';
 import WorkflowStatus from './WorkflowStatus';
 import Login from './Login';
 import Provision from './Provision';

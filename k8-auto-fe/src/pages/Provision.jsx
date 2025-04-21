@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Octokit } from "@octokit/core";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import Dashboard from "../components/Dashboard";
 
 function Provision() {
   const navigate = useNavigate();
@@ -24,7 +25,10 @@ function Provision() {
       try {
         const octokit = new Octokit({ auth: token });
         const response = await octokit.request("GET /user");
+        console.log(response.data.login);
+        
         setUserId(response.data.login);
+        localStorage.setItem("userName", response.data.login);
         setLoading(false);
       } catch (error) {
         console.error("Invalid token", error);
@@ -46,7 +50,7 @@ function Provision() {
       await octokit.request(
         "POST /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/dispatches",
         {
-          ref: "main",
+          ref: "revamp",
           inputs: {
             user_name: userId,
             awsAccessKey,
@@ -67,11 +71,12 @@ function Provision() {
     }
   };
 
-  if (loading) return <div className="ml-3 animate-spin rounded-full h-6 w-6 border-t-2 border-[#25292E] border-solid"></div>;
+  if (loading) return <div className="w-screen h-screen flex justify-center items-center"> <div className="ml-3 animate-spin rounded-full h-6 w-6 border-t-2 border-[#25292E] border-solid"></div></div>;
 
   return (
-    <div className="p-6 w-screen h-screen flex flex-col justify-center items-center bg-[#F7F7F7]">
-      <h1 className="text-4xl fixed top-24">K8-Automate</h1>
+    <Dashboard>
+    <div className="p-6 flex-1 flex-col justify-center items-center">
+      <h2 className="text-center text-4xl font-semibold mb-6">Create Your Cluster!</h2>
       <div className="w-full flex flex-wrap justify-center gap-x-4 gap-y-6">
         <input
           type="text"
@@ -112,6 +117,7 @@ function Provision() {
         </button>
       </div>
     </div>
+    </Dashboard>
   );
 }
 

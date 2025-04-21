@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { Octokit } from "@octokit/core";
 import { toast } from "react-toastify";
+import Dashboard from "../components/Dashboard";
 
 function WorkflowStatus() {
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
-  const userId = localStorage.getItem("uniqueUserId");
+  const userId = localStorage.getItem("userName");
 
   const [steps, setSteps] = useState([]);
   const [message, setMessage] = useState("");
@@ -18,6 +19,7 @@ function WorkflowStatus() {
     const timeout = setTimeout(() => {
       getWorkflowRun();
       setLoading(false);
+      
       pollingRef.current = setInterval(getWorkflowRun, 60000); // Poll every 60s
     }, 25000);
 
@@ -29,6 +31,7 @@ function WorkflowStatus() {
       }
     };
   }, []);
+
 
   const getWorkflowRun = async () => {
     try {
@@ -63,6 +66,8 @@ function WorkflowStatus() {
 
             // Check if the second step's name matches the uniqueUserId
             const step = steps[1]; // Assuming step[1] is the one you want
+            console.log(step);
+            
             if (step && step.name === userId) {
               foundJobId = job.id;
               foundSteps = steps.map((step) => ({
@@ -80,6 +85,8 @@ function WorkflowStatus() {
 
       // If we found the job and steps, store the job ID and show the steps
       if (foundSteps.length > 0) {
+        console.log(foundSteps);
+        
         processJobSteps({ steps: foundSteps });
       } else {
         setMessage("No jobs found.");
@@ -91,6 +98,8 @@ function WorkflowStatus() {
   };
 
   const processJobSteps = (jobData) => {
+    console.log("inside processjobsteps");
+    
     // Process the steps from the job data directly
     const steps = jobData.steps.map((step) => ({
       name: step.name,
@@ -98,7 +107,7 @@ function WorkflowStatus() {
       conclusion: step.conclusion,
     }));
 
-    setSteps(steps);
+    setSteps(steps);    
 
     // Check for any failed steps based on conclusion
     const failed = jobData.steps.find((step) => step.conclusion === "failure");
@@ -156,17 +165,15 @@ function WorkflowStatus() {
   };
 
   return (
-    <div className={`bg-[#25292E] min-h-screen w-screen ${!loading && 'py-12'}`}>
+    <Dashboard>
+    <div className={`w-full`}>
       {loading && (
-        <div className="text-center h-screen w-full flex flex-col space-y-16 justify-center items-center">
-          <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-[#F7F7F7] border-solid"></div>
-          <p className="text-[#F7F7F7] text-lg ">Your progress will be showed soon!</p>
-        </div>
+          <p className="text-black text-lg text-center mt-12 ">Your progress will be showed soon!</p>
       )}
 
       {!loading && steps.length > 0 && (
-        <div className="p-4 w-[95%] mx-auto">
-          <h2 className="font-bold text-2xl text-white">Progress:</h2>
+        <div className="p-4">
+          <h2 className="font-bold text-2xl ">Progress:</h2>
           <div className="flex flex-wrap space-y-5 space-x-2 mt-6">
             {steps.map((step, index) => {
               if (index < 2 || index > 15) {
@@ -200,6 +207,7 @@ function WorkflowStatus() {
         </div>
       )}
     </div>
+    </Dashboard>
   );
 }
 
