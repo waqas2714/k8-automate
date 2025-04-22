@@ -50,7 +50,7 @@ function Provision() {
       await octokit.request(
         "POST /repos/waqas2714/k8-automate/actions/workflows/main-wf.yml/dispatches",
         {
-          ref: "revamp",
+          ref: "main",
           inputs: {
             user_name: userId,
             awsAccessKey,
