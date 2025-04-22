@@ -64,6 +64,9 @@ function Provision() {
 
       toast.success("Workflow dispatched successfully!");
       localStorage.setItem("workflow_dispatched", "true");
+      localStorage.removeItem("workflow_complete");
+      localStorage.removeItem("workflow_steps");
+      
       navigate("/status");
     } catch (error) {
       toast.error("There was an error. Please try again.");

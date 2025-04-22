@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Octokit } from "@octokit/core";
 import { toast } from "react-toastify";
 import Dashboard from "../components/Dashboard";
+import { useNavigate } from "react-router-dom";
 
 function WorkflowStatus() {
   const octokit = new Octokit({ auth: import.meta.env.VITE_GITHUB_PAT });
@@ -12,7 +13,48 @@ function WorkflowStatus() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
+  const [initialLoad, setInitialLoad] = useState(true);
   const pollingRef = useRef(null); // Track interval
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("github_token");
+    if (!token) {
+      navigate("/");
+      return;
+    }
+  
+    const storedSteps = localStorage.getItem("workflow_steps");
+    const workflowComplete = localStorage.getItem("workflow_complete") === "true";
+  
+    if (storedSteps) {
+      const parsedSteps = JSON.parse(storedSteps);
+      setSteps(parsedSteps);
+      setLoading(false);
+    }
+  
+    if (workflowComplete) {
+      setLoading(false);
+      setSuccessMsg("Your cluster has been deployed successfully!");
+      return;
+    }
+  
+    const timeout = setTimeout(() => {
+      getWorkflowRun();
+      setLoading(false);
+  
+      pollingRef.current = setInterval(getWorkflowRun, 60000);
+    }, 25000);
+  
+    return () => {
+      clearTimeout(timeout);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
+  
 
   useEffect(() => {
     // Start polling after an initial delay of 25 seconds
@@ -86,7 +128,7 @@ function WorkflowStatus() {
       // If we found the job and steps, store the job ID and show the steps
       if (foundSteps.length > 0) {
         console.log(foundSteps);
-        
+        localStorage.setItem("workflow_steps", JSON.stringify(foundSteps));
         processJobSteps({ steps: foundSteps });
       } else {
         setMessage("No jobs found.");
@@ -98,54 +140,56 @@ function WorkflowStatus() {
   };
 
   const processJobSteps = (jobData) => {
-    console.log("inside processjobsteps");
-    
-    // Process the steps from the job data directly
     const steps = jobData.steps.map((step) => ({
       name: step.name,
       status: step.status,
       conclusion: step.conclusion,
     }));
-
-    setSteps(steps);    
-
-    // Check for any failed steps based on conclusion
-    const failed = jobData.steps.find((step) => step.conclusion === "failure");
-    if (failed) {
-      // If a failure is found, set the status of all remaining steps to 'canceled'
-
+  
+    setSteps(steps);
+    localStorage.setItem("workflow_steps", JSON.stringify(steps));
+  
+    const failedStep = steps.find((step) => step.conclusion === "failure");
+  
+    if (failedStep) {
       const updatedSteps = steps.map((step, index) => {
-        if (index === steps.indexOf(failed)) {
+        if (index === steps.indexOf(failedStep)) {
           return { ...step, status: "failed" };
         }
-        if (index > steps.indexOf(failed)) {
+        if (index > steps.indexOf(failedStep)) {
           return { ...step, status: "canceled" };
         }
         return step;
       });
-
+  
       setSteps(updatedSteps);
-
-      // Stop polling and display error message
+      localStorage.setItem("workflow_steps", JSON.stringify(updatedSteps));
+      localStorage.setItem("workflow_complete", "true");
+  
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
-        pollingRef.current = null;
       }
-
-      // Optionally, you can show a toast or alert here to notify the user
+  
       toast.error(
-        `Error found in step: ${failed.name}. All subsequent steps have been canceled.`
+        `Error found in step: ${failedStep.name}. All subsequent steps have been canceled.`
       );
-
+  
       setFailed(true);
+      return;
     }
-
-    // If all steps are successful, show a success message
+  
     const allSuccess = steps.every((step) => step.conclusion === "success");
     if (allSuccess) {
+      localStorage.setItem("workflow_complete", "true");
+  
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+  
       setSuccessMsg("Your cluster has been deployed successfully!");
     }
   };
+  
 
   const getStepBackgroundColor = (status) => {
     switch (status) {
