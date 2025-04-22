@@ -135,7 +135,7 @@ function WorkflowStatus() {
       }
     } catch (error) {
       console.error("Error getting workflow run:", error);
-      setMessage("Error retrieving workflow runs.");
+      toast.error("Error retrieving workflow runs.");
     }
   };
 
@@ -248,6 +248,14 @@ function WorkflowStatus() {
               {successMsg}
             </div>
           )}
+
+          {
+            message && (
+              <div className="mt-6 text-center text-red-500 font-semibold">
+              {successMsg}
+            </div>
+            )
+          }
         </div>
       )}
     </div>
