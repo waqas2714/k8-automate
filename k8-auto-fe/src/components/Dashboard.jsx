@@ -55,7 +55,7 @@ function Dashboard({ children }) {
           <h1 className="text-2xl font-semibold">Welcome,</h1> <p className="font-normal text-2xl ml-2">{localStorage.getItem("userName")}</p>
           </div>
         </header>
-        <section className="">{children}</section>
+        <div>{children}</div>
       </div>
     </div>
   );
