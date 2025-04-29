@@ -7,6 +7,7 @@ import {
 import WorkflowStatus from './WorkflowStatus';
 import Login from './Login';
 import Provision from './Provision';
+import CreatePods from './CreatePods';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path='/' element={<Login />} />
         <Route path='/provision' element={<Provision />} />
         <Route path='/status' element={<WorkflowStatus />} />
+        <Route path='/create' element={<CreatePods />} />
       </Routes>
     </Router>
   )

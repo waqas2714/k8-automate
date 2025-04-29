@@ -36,6 +36,11 @@ function Dashboard({ children }) {
               </NavLink>
             </li>
             <li>
+              <NavLink to="/create" className={linkClasses}>
+                Create
+              </NavLink>
+            </li>
+            <li>
               <button className="block p-2 rounded cursor-pointer hover:bg-red-400 transition-colors duration-150 ease-in-out w-full text-left" onClick={handleLogout}>
                 Logout
               </button>
