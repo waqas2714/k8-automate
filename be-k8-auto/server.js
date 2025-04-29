@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const authRoute = require("./routes/authRoute"); 
+const podsRoute = require("./routes/podsRoute"); 
 require("dotenv").config();
 
 const app = express();
@@ -19,5 +20,6 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoute); // Use the auth route
+app.use("/api/pods", podsRoute); // Use the auth route
 
 app.listen(3001, () => console.log("Server running on port 3001"));
